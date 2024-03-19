@@ -7,10 +7,6 @@ const prisma = new PrismaClient();
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send(`Hello! Your cookies: ${JSON.stringify(req.cookies)}`);
-});
-
 router.get("/me", checkAuth, async (req: any, res) => {
   const tokenContent = jwt.decode(req.cookies.token);
   if (tokenContent != null && typeof tokenContent == "object" && "username" in tokenContent) {
