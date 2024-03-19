@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web socket client</title>
+  </head>
+  <body>
+    <div style="background-color: hsl(30 100% 80%);" class="box">
+      <label for="username">username</label>
+      <input type="text" id="username"></input>
+      <label for="password">password</label>
+      <input type="text" id="password"></input>
+      <div class="buttons">
+        <button onclick="register()">register</button>
+        <button onclick="login()">login</button>
+        <button onclick="me()">me</button>
+      </div>
+    </div>
+    <div style="background-color: hsl(200 100% 80%);" class="box">
+      <label for="messageInput">websocket message</label>
+      <textarea style="height: 2rem" id="messageInput"></textarea>
+      <div class="buttons">
+        <button onclick="sendMessage()">send message</button>
+      </div>
+    </div>
+  </body>
+  <script>
+    const socket = new WebSocket("ws://localhost:8000");
+
+    socket.addEventListener("open", (event) => {
+      console.log("Connected to server");
+      socket.send("Hello from client");
+    });
+
+    socket.addEventListener("message", (event) => {
+      console.log("Message from server: ", event.data);
+    });
+
+    socket.addEventListener("close", (event) => {
+      console.log("Connection closed");
+    });
+
+    function sendMessage() {
+      const message = document.getElementById("messageInput").value;
+      socket.send(message);
+    }
+
+    async function register() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const response = await fetch ("http://localhost:8000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      console.log(response)
+
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const response = await fetch ("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      console.log(response)
+
+    }
+
+    async function me() {
+      const response = await fetch ("http://localhost:8000/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      console.log(response)
+      const reader = response.body.getReader();
+      const { value } = await reader.read();
+      console.log(new TextDecoder().decode(value));
+    }
+  </script>
+  <style>
+    .box {
+       margin: 0.5rem 0;
+       padding: 1rem;
+       display: flex;
+       flex-direction: column;
+       gap: 0.2rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+  </style>
+</html>
