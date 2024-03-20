@@ -2,10 +2,17 @@
 
 WIP project for playing games over websockets
 
-### Run with hot reloading
+### Run backend with hot reloading
 
 ```
 cd backend
+npm run dev
+```
+
+### Run frontend with hot reloading
+
+```
+cd frontend
 npm run dev
 ```
 
