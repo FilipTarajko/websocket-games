@@ -11,6 +11,8 @@ import WebSocket from "ws";
 
 const port = process.env.PORT ?? 3000;
 
+const loobyRoomId = 1
+
 const app = express();
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -25,10 +27,10 @@ type Room = {
   public: boolean;
 };
 
-let nextRoomId = 0;
+let nextRoomId = 2;
 const rooms: Room[] = [
   {
-    id: 0,
+    id: loobyRoomId,
     name: "lobby",
     users: [],
     owner: null,
@@ -43,6 +45,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
+  // res.json(rooms);
   res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
 });
 
@@ -69,20 +72,34 @@ function tryParseJson(jsonString: string) {
 }
 
 function createRoom(webSocket: WebSocket, req: any, roomName: string) {
-  const newRoom = { id: nextRoomId, name: roomName, users: [req], owner: req, public: true };
+  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: req, public: true };
   nextRoomId += 1;
   rooms.push(newRoom);
   webSocket.send(`Created room: ${newRoom.name} (${newRoom.id})`);
-  changeRoom(webSocket, req, newRoom.id);
+  joinRoom(webSocket, req, newRoom.id);
   return newRoom;
+}
+
+function tryParseControl(string: string) {
+  try {
+    const o = JSON.parse(string)
+    if (o && typeof o === 'object' && o.length == 2) {
+      return o
+    }
+  } catch (e) {
+    return false
+  }
+  return false
 }
 
 function leaveRoom(webSocket: WebSocket, req: any) {
   const oldRoom = rooms.find((room) => room.users.includes(req));
   if (oldRoom) {
-    oldRoom.users = oldRoom.users.filter((user) => user !== req);
+    console.log(oldRoom.users.length)
+    oldRoom.users = oldRoom.users.filter((user) => user != req);
+    console.log(oldRoom.users.length)
     if (oldRoom.users.length === 0) {
-      if (oldRoom.id == 0) {
+      if (oldRoom.id == loobyRoomId) {
         console.log("Can't delete lobby");
       } else {
         console.log("Room is empty, deleting...");
@@ -99,24 +116,72 @@ function leaveRoom(webSocket: WebSocket, req: any) {
   }
 }
 
-function joinRoom(webSocket: WebSocket, req: any, roomId: number) {
-  const newRoom = rooms.find((room) => room.id === roomId);
+function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
+  webSocket.send(JSON.stringify([name, data]));
+}
+
+function joinRoom(webSocket: WebSocket, req: any, newRoomId: number) {
+  leaveRoom(webSocket, req);
+  const newRoom = rooms.find((room) => room.id === newRoomId);
   if (!newRoom) {
-    webSocket.send("Room not found.");
+    sendControl(webSocket, 'rooms/not_found')
     return;
   }
   newRoom.users.push(req);
-  webSocket.send(`{"roomName": "${newRoom.name}", "roomId": ${newRoom.id}}`);
+  sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name })
 }
 
-function changeRoom(webSocket: WebSocket, req: any, newRoomId: number) {
-  leaveRoom(webSocket, req);
-  joinRoom(webSocket, req, newRoomId);
+function interpretControl(control: any, webSocket: WebSocket, req: any) {
+  const controlParts = control[0].split('/');
+  switch (controlParts[0]) {
+    case 'rooms':
+      switch (controlParts[1]) {
+        case 'create':
+          createRoom(webSocket, req, control[1]);
+          break;
+        case 'join':
+          joinRoom(webSocket, req, control[1]);
+          break;
+        case 'leave':
+          leaveRoom(webSocket, req);
+          break;
+        case 'say':
+          const room = rooms.find((room) => room.users.includes(req));
+          console.log(webSocketServer.clients)
+          webSocketServer.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(['rooms/said', { author: req.user, message: control[1] }]))
+              // client.send(JSON.stringify(['rooms/said', { author: req.user, message: JSON.stringify(webSocketServer.clients) }]))
+            }
+          })
+          break;
+        //       if (client.readyState === WebSocket.OPEN) {
+        //         client.send(message);
+        //         client.send(req.user.username + " says: " + json.message);
+        //       }
+        //     });
+
+        // if (room) {
+        //   room.users.forEach((user) => {
+        //     user.send(JSON.stringify(['rooms/say', { message: control[1].message }]))
+        //   });
+        // }
+        // break;
+        default:
+          sendControl(webSocket, 'error', { message: 'Unknown control' })
+          break;
+      }
+      break;
+    default:
+      sendControl(webSocket, 'error', { message: 'Unknown control' })
+      break;
+  }
 }
 
 webSocketServer.on("connection", (webSocket, req: any) => {
   webSocket.send("Connection to server established.");
   joinRoom(webSocket, req, 0);
+  joinRoom(webSocket, req, loobyRoomId);
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
@@ -125,19 +190,23 @@ webSocketServer.on("connection", (webSocket, req: any) => {
 
   webSocket.on("message", (messageToParse) => {
     const message = messageToParse.toString();
-    const json = tryParseJson(message);
-    if (json) {
-      console.log("JSON: ", json);
-      webSocket.send(`JSON: ${message}`);
-      if (json?.action == "broadcast") {
-        console.log("broadcasting!");
-        webSocketServer.clients.forEach(function each(client) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
-            client.send(req.user.username + " says: " + json.message);
-          }
-        });
-      }
+    const control = tryParseControl(message)
+    // const json = tryParseJson(message);
+    // if (json) {
+    //   console.log("JSON: ", json);
+    //   webSocket.send(`JSON: ${message}`);
+    //   if (json?.action == "broadcast") {
+    //     console.log("broadcasting!");
+    //     webSocketServer.clients.forEach(function each(client) {
+    //       if (client.readyState === WebSocket.OPEN) {
+    //         client.send(message);
+    //         client.send(req.user.username + " says: " + json.message);
+    //       }
+    //     });
+    //   }
+    if (control) {
+      console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
+      interpretControl(control, webSocket, req)
     } else {
       console.log("Received: ", message);
       webSocket.send(`Echo: ${message}`);
@@ -166,14 +235,14 @@ server.on("upgrade", function (req: any, socket: any, head: any) {
       return;
     }
     const username = decoded.username;
-    const userId = decoded.userId;
+    const id = decoded.userId;
 
-    socket.emit("Authenticated as " + username + " (" + userId + ")");
+    socket.emit("Authenticated as " + username + " (" + id + ")");
 
     socket.removeListener("error", onSocketError);
 
     webSocketServer.handleUpgrade(req, socket, head, function (ws) {
-      req.user = { username, userId };
+      req.user = { username, id };
 
       webSocketServer.emit("connection", ws, req);
     });

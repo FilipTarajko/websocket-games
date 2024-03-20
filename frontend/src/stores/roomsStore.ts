@@ -1,10 +1,10 @@
-import { type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
 import { useSocketStore } from './socketStore'
 
 export const useRoomsStore = defineStore('roomsStore', () => {
-  const currentRoom: Ref<{ name: string }> = useStorage('roomId', { name: '', id: 0 })
+  const currentRoom: Ref<{ name: string, id: number }> = ref({ name: 'none', id: 0 })
   const rooms: Ref<Array<any>> = useStorage('rooms', [])
 
   const socketStore = useSocketStore()
@@ -34,6 +34,6 @@ export const useRoomsStore = defineStore('roomsStore', () => {
   return {
     currentRoom,
     rooms,
-    createRoom
+    // createRoom
   }
 })

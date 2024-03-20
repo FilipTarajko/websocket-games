@@ -75,7 +75,7 @@ async function cookies() {
   })
   let x = (await response.json())
   // console.log(JSON.parse(x))
-  console.log(x)
+  // console.log(x)
   if (x.token) {
     yourUsername.value = useJwt(x.token).payload?.value.username || ''
   } else {
