@@ -11,7 +11,7 @@ import WebSocket from "ws";
 
 const port = process.env.PORT ?? 3000;
 
-const loobyRoomId = 1
+const lobbyRoomId = 1
 
 const app = express();
 app.use(cors({
@@ -30,7 +30,7 @@ type Room = {
 let nextRoomId = 2;
 const rooms: Room[] = [
   {
-    id: loobyRoomId,
+    id: lobbyRoomId,
     name: "lobby",
     users: [],
     owner: null,
@@ -45,7 +45,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
-  // res.json(rooms);
   res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
 });
 
@@ -61,22 +60,12 @@ function onSocketError(err: any) {
   console.error(err);
 }
 
-function tryParseJson(jsonString: string) {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) { }
-  return false;
-}
-
-function createRoom(webSocket: WebSocket, req: any, roomName: string) {
-  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: req, public: true };
+function createRoom(webSocket: any, roomName: string) {
+  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: webSocket.user, public: true };
   nextRoomId += 1;
   rooms.push(newRoom);
   webSocket.send(`Created room: ${newRoom.name} (${newRoom.id})`);
-  joinRoom(webSocket, req, newRoom.id);
+  joinRoom(webSocket, newRoom.id);
   return newRoom;
 }
 
@@ -92,14 +81,12 @@ function tryParseControl(string: string) {
   return false
 }
 
-function leaveRoom(webSocket: WebSocket, req: any) {
-  const oldRoom = rooms.find((room) => room.users.includes(req));
+function leaveRoom(webSocket: any) {
+  const oldRoom = rooms.find((room) => room.users.includes(webSocket.user));
   if (oldRoom) {
-    console.log(oldRoom.users.length)
-    oldRoom.users = oldRoom.users.filter((user) => user != req);
-    console.log(oldRoom.users.length)
+    oldRoom.users = oldRoom.users.filter((user) => user != webSocket.user);
     if (oldRoom.users.length === 0) {
-      if (oldRoom.id == loobyRoomId) {
+      if (oldRoom.id == lobbyRoomId) {
         console.log("Can't delete lobby");
       } else {
         console.log("Room is empty, deleting...");
@@ -107,7 +94,7 @@ function leaveRoom(webSocket: WebSocket, req: any) {
       }
     } else {
       console.log("Room not empty, not deleting");
-      if (oldRoom.owner === req) {
+      if (oldRoom.owner === webSocket.user) {
         console.log("Owner left, setting new owner");
         oldRoom.owner = oldRoom.users[0];
       }
@@ -120,53 +107,42 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
   webSocket.send(JSON.stringify([name, data]));
 }
 
-function joinRoom(webSocket: WebSocket, req: any, newRoomId: number) {
-  leaveRoom(webSocket, req);
+function joinRoom(webSocket: any, newRoomId: number) {
+  leaveRoom(webSocket);
   const newRoom = rooms.find((room) => room.id === newRoomId);
   if (!newRoom) {
     sendControl(webSocket, 'rooms/not_found')
     return;
   }
-  newRoom.users.push(req);
+  webSocket.roomId = newRoom.id;
+  newRoom.users.push(webSocket.user);
   sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name })
 }
 
-function interpretControl(control: any, webSocket: WebSocket, req: any) {
+function interpretControl(control: any, webSocket: any, req: any) {
   const controlParts = control[0].split('/');
   switch (controlParts[0]) {
     case 'rooms':
       switch (controlParts[1]) {
         case 'create':
-          createRoom(webSocket, req, control[1]);
+          createRoom(webSocket, control[1]);
           break;
         case 'join':
-          joinRoom(webSocket, req, control[1]);
+          joinRoom(webSocket, control[1]);
           break;
         case 'leave':
-          leaveRoom(webSocket, req);
+          leaveRoom(webSocket);
           break;
         case 'say':
-          const room = rooms.find((room) => room.users.includes(req));
-          console.log(webSocketServer.clients)
+          const roomId = rooms.find((room) => room.users.includes(webSocket.user))?.id;
+          console.log(roomId)
           webSocketServer.clients.forEach(function each(client) {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify(['rooms/said', { author: req.user, message: control[1] }]))
-              // client.send(JSON.stringify(['rooms/said', { author: req.user, message: JSON.stringify(webSocketServer.clients) }]))
+            // @ts-ignore
+            if (client.readyState === WebSocket.OPEN && client.roomId === roomId) {
+              client.send(JSON.stringify(['rooms/said', { author: webSocket.user, message: control[1] }]))
             }
           })
           break;
-        //       if (client.readyState === WebSocket.OPEN) {
-        //         client.send(message);
-        //         client.send(req.user.username + " says: " + json.message);
-        //       }
-        //     });
-
-        // if (room) {
-        //   room.users.forEach((user) => {
-        //     user.send(JSON.stringify(['rooms/say', { message: control[1].message }]))
-        //   });
-        // }
-        // break;
         default:
           sendControl(webSocket, 'error', { message: 'Unknown control' })
           break;
@@ -178,32 +154,44 @@ function interpretControl(control: any, webSocket: WebSocket, req: any) {
   }
 }
 
-webSocketServer.on("connection", (webSocket, req: any) => {
+webSocketServer.on("connection", (webSocket: any, req: any) => {
+
+  const cookies: { [key: string]: string } = {};
+  const cookieHeader = req.headers.cookie;
+
+  if (!cookieHeader) {
+    webSocket.destroy();
+    return;
+  }
+  cookieHeader.split("; ").forEach((cookie: string) => {
+    const [key, value] = cookie.split("=");
+    cookies[key] = value;
+  });
+
+  jwt.verify(cookies?.token, process.env.JWT_SECRET!, function (err: any, decoded: any) {
+    if (err || !decoded) {
+      webSocket.destroy();
+      return;
+    }
+    const username = decoded.username;
+    const id = decoded.userId;
+    webSocket.user = { username, id }
+    webSocket.emit("Authenticated as " + username + " (" + id + ")");
+    webSocket.removeListener("error", onSocketError);
+  });
+
   webSocket.send("Connection to server established.");
-  joinRoom(webSocket, req, 0);
-  joinRoom(webSocket, req, loobyRoomId);
+  joinRoom(webSocket, 0);
+  joinRoom(webSocket, lobbyRoomId);
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
-    leaveRoom(webSocket, req);
+    leaveRoom(webSocket);
   });
 
-  webSocket.on("message", (messageToParse) => {
+  webSocket.on("message", (messageToParse: any) => {
     const message = messageToParse.toString();
     const control = tryParseControl(message)
-    // const json = tryParseJson(message);
-    // if (json) {
-    //   console.log("JSON: ", json);
-    //   webSocket.send(`JSON: ${message}`);
-    //   if (json?.action == "broadcast") {
-    //     console.log("broadcasting!");
-    //     webSocketServer.clients.forEach(function each(client) {
-    //       if (client.readyState === WebSocket.OPEN) {
-    //         client.send(message);
-    //         client.send(req.user.username + " says: " + json.message);
-    //       }
-    //     });
-    //   }
     if (control) {
       console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
       interpretControl(control, webSocket, req)
@@ -215,37 +203,8 @@ webSocketServer.on("connection", (webSocket, req: any) => {
 });
 
 server.on("upgrade", function (req: any, socket: any, head: any) {
-  socket.on("error", onSocketError);
-
-  const cookies: { [key: string]: string } = {};
-  const cookieHeader = req.headers.cookie;
-
-  if (!cookieHeader) {
-    socket.destroy();
-    return;
-  }
-  cookieHeader.split("; ").forEach((cookie: string) => {
-    const [key, value] = cookie.split("=");
-    cookies[key] = value;
-  });
-
-  jwt.verify(cookies?.token, process.env.JWT_SECRET!, function (err: any, decoded: any) {
-    if (err || !decoded) {
-      socket.destroy();
-      return;
-    }
-    const username = decoded.username;
-    const id = decoded.userId;
-
-    socket.emit("Authenticated as " + username + " (" + id + ")");
-
-    socket.removeListener("error", onSocketError);
-
-    webSocketServer.handleUpgrade(req, socket, head, function (ws) {
-      req.user = { username, id };
-
-      webSocketServer.emit("connection", ws, req);
-    });
+  webSocketServer.handleUpgrade(req, socket, head, function (ws) {
+    webSocketServer.emit("connection", ws, req);
   });
 });
 
