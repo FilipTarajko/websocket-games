@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
-  res.send(rooms);
+  res.send(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
 });
 
 if (process.env.NODE_ENV === "development") {
@@ -77,8 +77,12 @@ function leaveRoom(webSocket: WebSocket, req: any) {
   if (oldRoom) {
     oldRoom.users = oldRoom.users.filter((user) => user !== req);
     if (oldRoom.users.length === 0) {
-      console.log("Room is empty, deleting...");
-      rooms.splice(rooms.indexOf(oldRoom), 1);
+      if (oldRoom.id == 0) {
+        console.log("Can't delete lobby");
+      } else {
+        console.log("Room is empty, deleting...");
+        rooms.splice(rooms.indexOf(oldRoom), 1);
+      }
     } else {
       console.log("Room not empty, not deleting");
       if (oldRoom.owner === req) {
@@ -97,7 +101,7 @@ function joinRoom(webSocket: WebSocket, req: any, roomId: number) {
     return;
   }
   newRoom.users.push(req);
-  webSocket.send(`Joined room: ${newRoom.name} (${newRoom.id})`);
+  webSocket.send(`{"roomName": "${newRoom.name}", "roomId": ${newRoom.id}}`);
 }
 
 function changeRoom(webSocket: WebSocket, req: any, newRoomId: number) {
@@ -111,6 +115,7 @@ webSocketServer.on("connection", (webSocket, req: any) => {
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
+    leaveRoom(webSocket, req);
   });
 
   webSocket.on("message", (messageToParse) => {
