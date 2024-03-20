@@ -1,6 +1,6 @@
-# Websockets-tic-tac-toe
+# ws-games
 
-WIP project for playing tic-tac-toe over websockets
+WIP project for playing games over websockets
 
 ### Run with hot reloading
 
