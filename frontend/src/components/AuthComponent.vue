@@ -91,21 +91,23 @@ cookies()
 </script>
 
 <template>
-  <div style="color: green;" v-if="yourUsername">
-    your name: {{ yourUsername }}
-  </div>
-  <div style="color: red;" v-else>
-    you are not logged in
-  </div>
-  <div class="flex flex-col gap-2">
-    <Input :disabled="loggedIn" name="username input" v-model="username" placeholder="username" />
-    <Input :disabled="loggedIn" name="password input" v-model="password" type="password" placeholder="password" />
-    <div class="flex flex-row gap-2">
-      <Button :disabled="loggedIn" @click="() => { register() }">register</Button>
-      <Button :disabled="loggedIn" @click="() => { login() }">login</Button>
-      <Button :disabled="!loggedIn" @click="() => { logout() }">logout</Button>
-      <Button :disabled="!loggedIn" @click="() => { me() }">me</Button>
-      <Button @click="() => { cookies() }">cookies</Button>
+  <div>
+    <div style="color: green;" v-if="yourUsername">
+      your name: {{ yourUsername }}
+    </div>
+    <div style="color: red;" v-else>
+      you are not logged in
+    </div>
+    <div class="flex flex-col gap-2">
+      <Input :disabled="loggedIn" name="username input" v-model="username" placeholder="username" />
+      <Input :disabled="loggedIn" name="password input" v-model="password" type="password" placeholder="password" />
+      <div class="flex flex-row gap-2">
+        <Button :disabled="loggedIn" @click="() => { register() }">register</Button>
+        <Button :disabled="loggedIn" @click="() => { login() }">login</Button>
+        <Button :disabled="!loggedIn" @click="() => { logout() }">logout</Button>
+        <Button :disabled="!loggedIn" @click="() => { me() }">me</Button>
+        <Button @click="() => { cookies() }">cookies</Button>
+      </div>
     </div>
   </div>
 </template>

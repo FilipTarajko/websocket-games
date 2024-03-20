@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import logger from "morgan";
 import path from "path";
 import WebSocket from "ws";
+import { TicTacToeGame, interpretTicTacToeControls } from "./TicTacToe";
 
 const port = process.env.PORT ?? 3000;
 
@@ -25,6 +26,7 @@ type Room = {
   users: any[];
   owner: any;
   public: boolean;
+  game: null | TicTacToeGame;
 };
 
 let nextRoomId = 2;
@@ -35,6 +37,7 @@ const rooms: Room[] = [
     users: [],
     owner: null,
     public: true,
+    game: null
   },
 ];
 
@@ -45,7 +48,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
-  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
+  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public, gameName: room.game?.gameName || "no game" })));
 });
 
 if (process.env.NODE_ENV === "development") {
@@ -61,7 +64,7 @@ function onSocketError(err: any) {
 }
 
 function createRoom(webSocket: any, roomName: string) {
-  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: webSocket.user, public: true };
+  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: webSocket.user, public: true, game: null };
   nextRoomId += 1;
   rooms.push(newRoom);
   webSocket.send(`Created room: ${newRoom.name} (${newRoom.id})`);
@@ -107,6 +110,10 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
   webSocket.send(JSON.stringify([name, data]));
 }
 
+function sendGameState(webSocket: any, room: any) {
+  webSocket.send(JSON.stringify([`${room.game.gameName.toLowerCase()}/set`, room.game]));
+}
+
 function joinRoom(webSocket: any, newRoomId: number) {
   leaveRoom(webSocket);
   const newRoom = rooms.find((room) => room.id === newRoomId);
@@ -117,9 +124,25 @@ function joinRoom(webSocket: any, newRoomId: number) {
   webSocket.roomId = newRoom.id;
   newRoom.users.push(webSocket.user);
   sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name })
+  if (newRoom.game) {
+    sendGameState(webSocket, newRoom)
+  }
 }
 
-function interpretControl(control: any, webSocket: any, req: any) {
+function sendToAllPlayersInRoom(room: any, control: any) {
+  webSocketServer.clients.forEach(function each(client) {
+    // @ts-ignore
+    console.log(client.roomId)
+    console.log(room.id)
+    // @ts-ignore
+    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
+      console.log("??")
+      client.send(JSON.stringify(control))
+    }
+  })
+}
+
+function interpretControl(control: any, webSocket: any) {
   const controlParts = control[0].split('/');
   switch (controlParts[0]) {
     case 'rooms':
@@ -143,14 +166,30 @@ function interpretControl(control: any, webSocket: any, req: any) {
             }
           })
           break;
+        case 'setGame':
+          const room = rooms.find((room) => room.users.includes(webSocket.user))
+          // TODO: remove true
+          if (room && (room.owner === webSocket.user || true)) {
+            room.game = new TicTacToeGame()
+            sendToAllPlayersInRoom(room, ["tictactoe/set", room.game])
+          }
+          break;
         default:
           sendControl(webSocket, 'error', { message: 'Unknown control' })
           break;
       }
       break;
+    case 'tictactoe':
+      console.log("tictactoe")
+      let room = rooms.find((room) => room.users.includes(webSocket.user))
+      if (room && room.game instanceof TicTacToeGame) {
+        interpretTicTacToeControls(control, webSocket, room.game)
+      }
+      break;
     default:
       sendControl(webSocket, 'error', { message: 'Unknown control' })
       break;
+
   }
 }
 
@@ -160,7 +199,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
   const cookieHeader = req.headers.cookie;
 
   if (!cookieHeader) {
-    webSocket.destroy();
+    webSocket.terminate();
     return;
   }
   cookieHeader.split("; ").forEach((cookie: string) => {
@@ -170,7 +209,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
 
   jwt.verify(cookies?.token, process.env.JWT_SECRET!, function (err: any, decoded: any) {
     if (err || !decoded) {
-      webSocket.destroy();
+      webSocket.terminate();
       return;
     }
     const username = decoded.username;
@@ -194,7 +233,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
     const control = tryParseControl(message)
     if (control) {
       console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
-      interpretControl(control, webSocket, req)
+      interpretControl(control, webSocket)
     } else {
       console.log("Received: ", message);
       webSocket.send(`Echo: ${message}`);

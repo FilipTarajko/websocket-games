@@ -1,10 +1,12 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useRoomsStore } from './roomsStore'
 
 export const useSocketStore = defineStore('socketStore', () => {
   const socket = new WebSocket('ws://127.0.0.1:8000/ws')
   const socketMessage = ref('')
+  const chatMessages: Ref<any[]> = ref([])
+  const gameState: Ref<any> = ref()
 
   const roomsStore = useRoomsStore()
 
@@ -42,13 +44,25 @@ export const useSocketStore = defineStore('socketStore', () => {
       case 'rooms':
         switch (controlParts[1]) {
           case 'joined':
+            chatMessages.value.push(`You have joined room: ${control[1].name}.`)
             roomsStore.currentRoom = control[1]
             break;
           case 'said':
-            console.log(control)
+            chatMessages.value.push(control[1])
             break;
         }
         break;
+      case 'tictactoe':
+        switch (controlParts[1]) {
+          case 'set':
+            chatMessages.value.push("Game set to TicTacToe")
+            gameState.value = control[1]
+            console.log("Game set to TicTacToe")
+            break;
+          default:
+            console.log("Unknown tictactoe control")
+            break;
+        }
     }
   }
   function sendMessage() {
@@ -88,6 +102,8 @@ export const useSocketStore = defineStore('socketStore', () => {
   return {
     socket,
     sendMessage,
-    sendControl
+    sendControl,
+    chatMessages,
+    gameState
   }
 })
