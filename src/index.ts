@@ -12,11 +12,34 @@ const port = process.env.PORT ?? 3000;
 
 const app = express();
 
+type Room = {
+  id: number;
+  name: string;
+  users: any[];
+  owner: any;
+  public: boolean;
+};
+
+let nextRoomId = 0;
+const rooms: Room[] = [
+  {
+    id: 0,
+    name: "lobby",
+    users: [],
+    owner: null,
+    public: true,
+  },
+];
+
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
+
+app.get("/rooms", (req, res) => {
+  res.send(rooms);
+});
 
 if (process.env.NODE_ENV === "development") {
   app.use(logger(":method :url"));
@@ -39,8 +62,52 @@ function tryParseJson(jsonString: string) {
   } catch (e) {}
   return false;
 }
+
+function createRoom(webSocket: WebSocket, req: any, roomName: string) {
+  const newRoom = { id: nextRoomId, name: roomName, users: [req], owner: req, public: true };
+  nextRoomId += 1;
+  rooms.push(newRoom);
+  webSocket.send(`Created room: ${newRoom.name} (${newRoom.id})`);
+  changeRoom(webSocket, req, newRoom.id);
+  return newRoom;
+}
+
+function leaveRoom(webSocket: WebSocket, req: any) {
+  const oldRoom = rooms.find((room) => room.users.includes(req));
+  if (oldRoom) {
+    oldRoom.users = oldRoom.users.filter((user) => user !== req);
+    if (oldRoom.users.length === 0) {
+      console.log("Room is empty, deleting...");
+      rooms.splice(rooms.indexOf(oldRoom), 1);
+    } else {
+      console.log("Room not empty, not deleting");
+      if (oldRoom.owner === req) {
+        console.log("Owner left, setting new owner");
+        oldRoom.owner = oldRoom.users[0];
+      }
+    }
+    webSocket.send(`Left room: ${oldRoom.name} (${oldRoom.id})`);
+  }
+}
+
+function joinRoom(webSocket: WebSocket, req: any, roomId: number) {
+  const newRoom = rooms.find((room) => room.id === roomId);
+  if (!newRoom) {
+    webSocket.send("Room not found.");
+    return;
+  }
+  newRoom.users.push(req);
+  webSocket.send(`Joined room: ${newRoom.name} (${newRoom.id})`);
+}
+
+function changeRoom(webSocket: WebSocket, req: any, newRoomId: number) {
+  leaveRoom(webSocket, req);
+  joinRoom(webSocket, req, newRoomId);
+}
+
 webSocketServer.on("connection", (webSocket, req: any) => {
   webSocket.send("Connection to server established.");
+  joinRoom(webSocket, req, 0);
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
@@ -51,6 +118,7 @@ webSocketServer.on("connection", (webSocket, req: any) => {
     const json = tryParseJson(message);
     if (json) {
       console.log("JSON: ", json);
+      webSocket.send(`JSON: ${message}`);
       if (json?.action == "broadcast") {
         console.log("broadcasting!");
         webSocketServer.clients.forEach(function each(client) {
@@ -62,8 +130,8 @@ webSocketServer.on("connection", (webSocket, req: any) => {
       }
     } else {
       console.log("Received: ", message);
+      webSocket.send(`Echo: ${message}`);
     }
-    webSocket.send(`Echo: ${message}`);
   });
 });
 
