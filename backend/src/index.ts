@@ -1,5 +1,6 @@
 import authRouter from "./auth";
 import cookieParser from "cookie-parser";
+var cors = require('cors')
 import "dotenv/config";
 import express from "express";
 import http from "http";
@@ -11,6 +12,10 @@ import WebSocket from "ws";
 const port = process.env.PORT ?? 3000;
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 
 type Room = {
   id: number;
@@ -38,7 +43,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
-  res.send(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
+  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public })));
 });
 
 if (process.env.NODE_ENV === "development") {
@@ -59,7 +64,7 @@ function tryParseJson(jsonString: string) {
     if (o && typeof o === "object") {
       return o;
     }
-  } catch (e) {}
+  } catch (e) { }
   return false;
 }
 
