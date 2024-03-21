@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useRoomsStore } from '@/stores/roomsStore';
@@ -8,11 +8,19 @@ import { useSocketStore } from '@/stores/socketStore';
 const roomsStore = useRoomsStore()
 const socketStore = useSocketStore()
 
+const isMouseDown = ref(false)
+const selectedColor = ref("#ffffff")
+
 const messageToSay = ref('')
 function sayInRoom() {
   if (!messageToSay.value) return
   socketStore.sendControl('rooms/say', messageToSay.value)
   messageToSay.value = ""
+}
+
+function setSelectedColor(color: string) {
+  console.log("color selected", color)
+  selectedColor.value = color
 }
 
 const isItYourTicTacToeTurn = computed(() => {
@@ -35,6 +43,24 @@ const isItYourTicTacToeTurn = computed(() => {
   return true
 });
 
+function drawIfMousePressed(i: number) {
+  if (isMouseDown.value) {
+    socketStore.gameState.board[i] = selectedColor.value
+    if (isMouseDown.value) {
+      socketStore.sendControl('game/place', { index: i, color: selectedColor.value })
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('mousedown', () => {
+    isMouseDown.value = true
+  })
+
+  window.addEventListener('mouseup', () => {
+    isMouseDown.value = false
+  })
+})
 </script>
 
 <template>
@@ -60,13 +86,13 @@ const isItYourTicTacToeTurn = computed(() => {
     </div>
     <div class="w-6/12 h-120 px-2">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
-        <div v-if="socketStore.gameState">
-          <div class="h-12 w-full text-center text-4xl">
-            <span v-if="socketStore.gameState.winner">
-              winner: {{ socketStore.gameState.winner }}
-            </span>
-          </div>
+        <div style="height: 100%;" v-if="socketStore.gameState">
           <div v-if="socketStore.gameState.gameName == 'TicTacToe'">
+            <div class="h-12 w-full text-center text-4xl">
+              <span v-if="socketStore.gameState.winner">
+                winner: {{ socketStore.gameState.winner }}
+              </span>
+            </div>
             <div class="flex flex-row justify-center">
               <div class="grid grid-cols-3 gap-4 w-80">
                 <Button v-for="spot, i in socketStore.gameState.board" :disabled="spot || !isItYourTicTacToeTurn"
@@ -76,6 +102,27 @@ const isItYourTicTacToeTurn = computed(() => {
                 </Button>
               </div>
             </div>
+          </div>
+          <div style="height: 100%;" v-else-if="socketStore.gameState.gameName == 'Drawing'">
+            <div class="h-1/6 w-full text-center flex flex-col">
+              <div v-for="lightnessIterator in 11" style="height: 12.5%; width: 100%; display: flex">
+                <div v-for="hueIterator in 40" style="height: 100%; width: 2.5%;">
+                  <div
+                    @click="() => { setSelectedColor(`hsl(${hueIterator * 9} 50% ${(11 - lightnessIterator) * 10}%)`) }"
+                    :style="`width: 100%; height: 100%; background-color: hsl(${hueIterator * 9} 50% ${(11 - lightnessIterator) * 10}%);`">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- <div class="flex flex-row justify-center w-full h-full"> -->
+            <div class="w-full h-5/6"
+              style="display: grid; grid-template-columns: repeat(30, 3.333%); grid-template-rows: repeat(30, 3.333%);">
+              <div style="width: 100%; height: 100%;" v-for="field, i in socketStore.gameState.board">
+                <div @mouseover="drawIfMousePressed(i)" :style="`background-color: ${field}; width: 100%; height: 100%;`">
+                </div>
+              </div>
+            </div>
+            <!-- </div> -->
           </div>
         </div>
       </div>
@@ -111,10 +158,14 @@ const isItYourTicTacToeTurn = computed(() => {
             Room's owner: {{ roomsStore.currentRoom.ownerName }}
           </div>
         </div>
-        <div>
+        <div class="flex flex-col gap-1 mb-2">
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
             @click="() => { socketStore.sendControl('rooms/setGame', 'tictactoe') }">
             set game to TicTacToe
+          </Button>
+          <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
+            @click="() => { socketStore.sendControl('rooms/setGame', 'drawing') }">
+            set game to drawing
           </Button>
         </div>
       </div>

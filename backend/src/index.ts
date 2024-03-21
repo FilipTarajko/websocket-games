@@ -9,6 +9,8 @@ import logger from "morgan";
 import path from "path";
 import WebSocket from "ws";
 import { TicTacToeGame } from "./TicTacToe";
+// @ts-ignore
+import { DrawingGame } from "./Drawing";
 
 const port = process.env.PORT ?? 3000;
 
@@ -26,7 +28,7 @@ type Room = {
   users: any[];
   owner: any;
   public: boolean;
-  game: null | TicTacToeGame;
+  game: null | TicTacToeGame | DrawingGame;
 };
 
 let nextRoomId = 2;
@@ -101,7 +103,7 @@ function leaveRoom(webSocket: any) {
         console.log("Owner left, setting new owner");
         oldRoom.owner = oldRoom.users[0];
       }
-      if (oldRoom.game) {
+      if (oldRoom.game && "playerSpots" in oldRoom.game) {
         for (let i = 0; i < oldRoom.game.playerSpots.length; i++) {
           if (oldRoom.game.playerSpots[i].player?.id == webSocket.user.id) {
             oldRoom.game.playerSpots[i].player = null;
@@ -177,8 +179,13 @@ function interpretControl(control: any, webSocket: any) {
           break;
         case 'setGame':
           if (room && (room.owner === webSocket.user)) {
-            room.game = new TicTacToeGame()
-            sendToAllPlayersInRoom(room, ["game/set", room.game])
+            if (control[1] === "tictactoe") {
+              room.game = new TicTacToeGame()
+              sendToAllPlayersInRoom(room, ["game/set", room.game])
+            } else if (control[1] === "drawing") {
+              room.game = new DrawingGame()
+              sendToAllPlayersInRoom(room, ["game/set", room.game])
+            }
           }
           break;
         default:
@@ -189,7 +196,7 @@ function interpretControl(control: any, webSocket: any) {
     case 'game':
       switch (controlParts[1]) {
         case 'takeSpot':
-          if (room && room.game) {
+          if (room && room.game && "takeSpot" in room.game) {
             room.game.takeSpot(control[1], webSocket.user);
             sendToAllPlayersInRoom(room, ["game/update", room.game])
           }
@@ -197,10 +204,14 @@ function interpretControl(control: any, webSocket: any) {
         case 'place':
           if (room && room.game) {
             room.game.place(control[1]);
-            if (room.game.winner) {
+            if ("winner" in room.game && room.game.winner) {
               sendToAllPlayersInRoom(room, ["game/ended", room.game])
             } else {
-              sendToAllPlayersInRoom(room, ["game/update", room.game])
+              if (room.game.gameName === "Drawing") {
+                sendToAllPlayersInRoom(room, ["game/updatePixel", { index: control[1].index, color: control[1].color }])
+              } else {
+                sendToAllPlayersInRoom(room, ["game/update", room.game])
+              }
             }
           }
           break;

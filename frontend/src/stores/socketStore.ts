@@ -58,6 +58,10 @@ export const useSocketStore = defineStore('socketStore', () => {
         break;
       case 'game':
         switch (controlParts[1]) {
+          case "updatePixel":
+            // console.log(`Placed pixel at ${control[1].index} with color ${control[1].color}`)
+            gameState.value.board[control[1].index] = control[1].color
+            break;
           case 'set':
             chatMessages.value.push(`Game set to ${control[1].gameName}`)
             console.log(`Game set to ${control[1].gameName}`)

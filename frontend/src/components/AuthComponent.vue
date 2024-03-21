@@ -77,6 +77,7 @@ async function cookies() {
   // console.log(JSON.parse(x))
   // console.log(x)
   if (x.token) {
+    // @ts-ignore
     socketStore.yourUsername = useJwt(x.token).payload?.value.username || ''
   } else {
     socketStore.yourUsername = ''
