@@ -120,7 +120,7 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
 }
 
 function sendGameState(webSocket: any, room: any) {
-  webSocket.send(JSON.stringify([`game/set`, room.game]));
+  webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "none" }]));
 }
 
 function generateRoomPublicData(room: any) {
@@ -138,9 +138,7 @@ function joinRoom(webSocket: any, newRoomId: number) {
   newRoom.users.push(webSocket.user);
   sendToAllPlayersInRoom(newRoom, ["rooms/update", generateRoomPublicData(newRoom)])
   sendControl(webSocket, "rooms/joined", generateRoomPublicData(newRoom))
-  if (newRoom.game) {
-    sendGameState(webSocket, newRoom)
-  }
+  sendGameState(webSocket, newRoom)
 }
 
 function sendToAllPlayersInRoom(room: any, control: any) {
