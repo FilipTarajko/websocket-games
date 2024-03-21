@@ -55,7 +55,7 @@ function joinRoom(id: number) {
           <TableCell>{{ room.gameName }}</TableCell>
           <TableCell>
             <div v-if="room.hasPassword > 0">
-              <Input placeholder="password" type="password" :id="`room${room.id}password`" class="w-32"></Input>
+              <Input placeholder="password" type="password" :id="`room${room.id}password`" class="w-40"></Input>
             </div>
             <div v-else>
               public
@@ -75,8 +75,8 @@ function joinRoom(id: number) {
           </TableCell>
           <TableCell></TableCell>
           <TableCell></TableCell>
-          <TableCell colspan="1"><Input v-model="newRoomData.password"
-              :placeholder="socketStore.yourUsername + '\'s room'" class="mr-2" type="password" id="newRoomPassword" />
+          <TableCell colspan="1"><Input v-model="newRoomData.password" placeholder="password (optional)" class="mr-2 w-40"
+              type="password" id="newRoomPassword" />
           </TableCell>
           <TableCell><Button @click="createRoom">create room</Button></TableCell>
         </TableRow>

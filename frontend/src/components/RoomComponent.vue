@@ -45,11 +45,13 @@ const isItYourTicTacToeTurn = computed(() => {
 
 function drawIfMousePressed(i: number) {
   if (isMouseDown.value) {
-    socketStore.gameState.board[i] = selectedColor.value
-    if (isMouseDown.value) {
-      socketStore.sendControl('game/place', { index: i, color: selectedColor.value })
-    }
+    draw(i)
   }
+}
+
+function draw(i: number) {
+  socketStore.gameState.board[i] = selectedColor.value
+  socketStore.sendControl('game/place', { index: i, color: selectedColor.value })
 }
 
 onMounted(() => {
@@ -118,7 +120,8 @@ onMounted(() => {
             <div class="w-full h-5/6"
               style="display: grid; grid-template-columns: repeat(30, 3.333%); grid-template-rows: repeat(30, 3.333%);">
               <div style="width: 100%; height: 100%;" v-for="field, i in socketStore.gameState.board">
-                <div @mouseover="drawIfMousePressed(i)" :style="`background-color: ${field}; width: 100%; height: 100%;`">
+                <div @click="draw(i)" @mouseover="drawIfMousePressed(i)"
+                  :style="`background-color: ${field}; width: 100%; height: 100%;`">
                 </div>
               </div>
             </div>
