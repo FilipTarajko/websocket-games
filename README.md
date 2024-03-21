@@ -1,10 +1,14 @@
-# ws-games
+# websocket-games
 
-WIP project for playing games over websockets
+Project with some multiplayer games playable in real-time over websockets
 
-Currently included games:
--TicTacToe
--Drawing
+## TicTacToe
+
+![TicTacToe](readmePictures/tictactoe.png "TicTacToe")
+
+##  Drawing
+
+![Drawing](readmePictures/drawing.png "Drawing")
 
 ### Run frontend with hot reloading
 
