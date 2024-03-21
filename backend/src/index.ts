@@ -101,6 +101,14 @@ function leaveRoom(webSocket: any) {
         console.log("Owner left, setting new owner");
         oldRoom.owner = oldRoom.users[0];
       }
+      if (oldRoom.game) {
+        for (let i = 0; i < oldRoom.game.playerSpots.length; i++) {
+          if (oldRoom.game.playerSpots[i].player?.id == webSocket.user.id) {
+            oldRoom.game.playerSpots[i].player = null;
+            sendToAllPlayersInRoom(oldRoom, ["game/update", oldRoom.game])
+          }
+        }
+      }
     }
     sendToAllPlayersInRoom(oldRoom, ["rooms/update", generateRoomPublicData(oldRoom)])
     webSocket.send(`Left room: ${oldRoom.name} (${oldRoom.id})`);
