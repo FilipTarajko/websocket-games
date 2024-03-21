@@ -130,23 +130,21 @@ onMounted(() => {
     <div class="w-3/12 h-120">
       <div class="h-full w-full border-2 border-solid border-gray-500 flex flex-col justify-between items-center">
         <div>
-          Game roles:
-          <div v-for="playerSpot, i in socketStore.gameState?.playerSpots">
-            {{ playerSpot.name }}:
-            <span>
-              <span v-if="playerSpot.player">
-                {{ playerSpot.player.username }}
+          <div v-if="socketStore?.gameState?.playerSpots">
+            Game roles:
+            <div v-for="playerSpot, i in socketStore.gameState?.playerSpots">
+              {{ playerSpot.name }}:
+              <span>
+                <span v-if="playerSpot.player">
+                  {{ playerSpot.player.username }}
+                </span>
+                <span v-else>
+                  empty
+                  <Button @click="() => { socketStore.sendControl('game/takeSpot', i) }">join</Button>
+                </span>
               </span>
-              <span v-else>
-                empty
-                <Button @click="() => { socketStore.sendControl('game/takeSpot', i) }">join</Button>
-              </span>
-            </span>
+            </div>
           </div>
-          <div v-if="!socketStore?.gameState">
-            no game
-          </div>
-
           <div class="mt-6">
             All users in room:
             <div v-for="player in roomsStore.currentRoom.users">

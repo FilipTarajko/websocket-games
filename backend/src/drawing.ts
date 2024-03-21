@@ -1,10 +1,3 @@
-import { User } from "@prisma/client";
-
-type PlayerSpot = {
-    name: string,
-    player: User | null
-}
-
 export class DrawingGame {
     board: string[];
     gameName: string
@@ -19,7 +12,7 @@ export class DrawingGame {
             return;
         }
         else {
-            this.board[data.position] = data.color;
+            this.board[data.index] = data.color;
         }
     }
 }

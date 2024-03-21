@@ -4,6 +4,7 @@ WIP project for playing games over websockets
 
 Currently included games:
 -TicTacToe
+-Drawing
 
 ### Run frontend with hot reloading
 
