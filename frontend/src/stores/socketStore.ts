@@ -62,7 +62,9 @@ export const useSocketStore = defineStore('socketStore', () => {
             gameState.value.board[control[1].index] = control[1].color
             break;
           case 'set':
-            chatMessages.value.push(`New ${control[1].gameName} game started`)
+            if (control[1].gameName) {
+              chatMessages.value.push(`New ${control[1].gameName} game started`)
+            }
           case 'update':
             gameState.value = control[1]
             break;

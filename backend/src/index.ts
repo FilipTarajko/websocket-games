@@ -122,7 +122,7 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
 }
 
 function sendGameState(webSocket: any, room: any) {
-  webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "none" }]));
+  webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "" }]));
 }
 
 function generateRoomPublicData(room: any) {

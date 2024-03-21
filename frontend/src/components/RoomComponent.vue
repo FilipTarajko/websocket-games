@@ -64,7 +64,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-text="`room: ${roomsStore.currentRoom.name} (${roomsStore.currentRoom.id})`"></div>
+  <div v-text="`room: ${roomsStore.currentRoom.name} (id: ${roomsStore.currentRoom.id})`"></div>
   <div class="flex flex-row mt-4 ">
     <div class="w-3/12">
       <div id="chat" class="border-solid border-2 border-gray-500 h-96 overflow-auto">
