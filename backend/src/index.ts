@@ -102,6 +102,7 @@ function leaveRoom(webSocket: any) {
         oldRoom.owner = oldRoom.users[0];
       }
     }
+    sendToAllPlayersInRoom(oldRoom, ["rooms/update", generateRoomPublicData(oldRoom)])
     webSocket.send(`Left room: ${oldRoom.name} (${oldRoom.id})`);
   }
 }
@@ -114,6 +115,10 @@ function sendGameState(webSocket: any, room: any) {
   webSocket.send(JSON.stringify([`game/set`, room.game]));
 }
 
+function generateRoomPublicData(room: any) {
+  return { id: room.id, name: room.name, ownerName: room.owner?.username, users: room.users }
+}
+
 function joinRoom(webSocket: any, newRoomId: number) {
   leaveRoom(webSocket);
   const newRoom = rooms.find((room) => room.id === newRoomId);
@@ -123,7 +128,8 @@ function joinRoom(webSocket: any, newRoomId: number) {
   }
   webSocket.roomId = newRoom.id;
   newRoom.users.push(webSocket.user);
-  sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name, ownerName: newRoom.owner?.username })
+  sendToAllPlayersInRoom(newRoom, ["rooms/update", generateRoomPublicData(newRoom)])
+  sendControl(webSocket, "rooms/joined", generateRoomPublicData(newRoom))
   if (newRoom.game) {
     sendGameState(webSocket, newRoom)
   }

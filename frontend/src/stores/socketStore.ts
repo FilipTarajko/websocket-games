@@ -51,6 +51,9 @@ export const useSocketStore = defineStore('socketStore', () => {
           case 'said':
             chatMessages.value.push(control[1])
             break;
+          case 'update':
+            roomsStore.currentRoom = control[1]
+            break;
         }
         break;
       case 'game':

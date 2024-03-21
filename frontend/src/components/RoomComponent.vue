@@ -83,7 +83,7 @@ const isItYourTicTacToeTurn = computed(() => {
     <div class="w-3/12 h-120">
       <div class="h-full w-full border-2 border-solid border-gray-500 flex flex-col justify-between items-center">
         <div>
-          Players
+          Game roles:
           <div v-for="playerSpot, i in socketStore.gameState?.playerSpots">
             {{ playerSpot.name }}:
             <span>
@@ -96,7 +96,20 @@ const isItYourTicTacToeTurn = computed(() => {
               </span>
             </span>
           </div>
+          <div v-if="!socketStore?.gameState">
+            no game
+          </div>
 
+          <div class="mt-6">
+            All users in room:
+            <div v-for="player in roomsStore.currentRoom.users">
+              - {{ player.username }}
+            </div>
+          </div>
+
+          <div v-if="roomsStore?.currentRoom?.ownerName" class="mt-6">
+            Room's owner: {{ roomsStore.currentRoom.ownerName }}
+          </div>
         </div>
         <div>
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
