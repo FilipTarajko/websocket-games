@@ -7,6 +7,7 @@ export const useSocketStore = defineStore('socketStore', () => {
   const socketMessage = ref('')
   const chatMessages: Ref<any[]> = ref([])
   const gameState: Ref<any> = ref()
+  const yourUsername: Ref<string> = ref("")
 
   const roomsStore = useRoomsStore()
 
@@ -52,15 +53,21 @@ export const useSocketStore = defineStore('socketStore', () => {
             break;
         }
         break;
-      case 'tictactoe':
+      case 'game':
         switch (controlParts[1]) {
           case 'set':
-            chatMessages.value.push("Game set to TicTacToe")
+            chatMessages.value.push(`Game set to ${control[1].gameName}`)
+            console.log(`Game set to ${control[1].gameName}`)
+          case 'update':
             gameState.value = control[1]
-            console.log("Game set to TicTacToe")
+            break;
+          case 'ended':
+            chatMessages.value.push(`${control[1].winner} won ${control[1].gameName}!`)
+            console.log(`${control[1].winner} won ${control[1].gameName}!`)
+            gameState.value = control[1]
             break;
           default:
-            console.log("Unknown tictactoe control")
+            console.log("Unknown game control")
             break;
         }
     }
@@ -104,6 +111,7 @@ export const useSocketStore = defineStore('socketStore', () => {
     sendMessage,
     sendControl,
     chatMessages,
-    gameState
+    gameState,
+    yourUsername
   }
 })

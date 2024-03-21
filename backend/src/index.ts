@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import logger from "morgan";
 import path from "path";
 import WebSocket from "ws";
-import { TicTacToeGame, interpretTicTacToeControls } from "./TicTacToe";
+import { TicTacToeGame } from "./TicTacToe";
 
 const port = process.env.PORT ?? 3000;
 
@@ -111,7 +111,7 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
 }
 
 function sendGameState(webSocket: any, room: any) {
-  webSocket.send(JSON.stringify([`${room.game.gameName.toLowerCase()}/set`, room.game]));
+  webSocket.send(JSON.stringify([`game/set`, room.game]));
 }
 
 function joinRoom(webSocket: any, newRoomId: number) {
@@ -123,7 +123,7 @@ function joinRoom(webSocket: any, newRoomId: number) {
   }
   webSocket.roomId = newRoom.id;
   newRoom.users.push(webSocket.user);
-  sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name })
+  sendControl(webSocket, "rooms/joined", { id: newRoom.id, name: newRoom.name, ownerName: newRoom.owner?.username })
   if (newRoom.game) {
     sendGameState(webSocket, newRoom)
   }
@@ -132,17 +132,14 @@ function joinRoom(webSocket: any, newRoomId: number) {
 function sendToAllPlayersInRoom(room: any, control: any) {
   webSocketServer.clients.forEach(function each(client) {
     // @ts-ignore
-    console.log(client.roomId)
-    console.log(room.id)
-    // @ts-ignore
     if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
-      console.log("??")
       client.send(JSON.stringify(control))
     }
   })
 }
 
 function interpretControl(control: any, webSocket: any) {
+  let room = rooms.find((room) => room.users.includes(webSocket.user))
   const controlParts = control[0].split('/');
   switch (controlParts[0]) {
     case 'rooms':
@@ -167,27 +164,38 @@ function interpretControl(control: any, webSocket: any) {
           })
           break;
         case 'setGame':
-          const room = rooms.find((room) => room.users.includes(webSocket.user))
-          // TODO: remove true
-          if (room && (room.owner === webSocket.user || true)) {
+          if (room && (room.owner === webSocket.user)) {
             room.game = new TicTacToeGame()
-            sendToAllPlayersInRoom(room, ["tictactoe/set", room.game])
+            sendToAllPlayersInRoom(room, ["game/set", room.game])
           }
           break;
         default:
-          sendControl(webSocket, 'error', { message: 'Unknown control' })
+          sendControl(webSocket, 'error', { message: `Unknown 'rooms' control: ${control}` })
           break;
       }
       break;
-    case 'tictactoe':
-      console.log("tictactoe")
-      let room = rooms.find((room) => room.users.includes(webSocket.user))
-      if (room && room.game instanceof TicTacToeGame) {
-        interpretTicTacToeControls(control, webSocket, room.game)
+    case 'game':
+      switch (controlParts[1]) {
+        case 'takeSpot':
+          if (room && room.game) {
+            room.game.takeSpot(control[1], webSocket.user);
+            sendToAllPlayersInRoom(room, ["game/update", room.game])
+          }
+          break;
+        case 'place':
+          if (room && room.game) {
+            room.game.place(control[1]);
+            if (room.game.winner) {
+              sendToAllPlayersInRoom(room, ["game/ended", room.game])
+            } else {
+              sendToAllPlayersInRoom(room, ["game/update", room.game])
+            }
+          }
+          break;
       }
       break;
     default:
-      sendControl(webSocket, 'error', { message: 'Unknown control' })
+      sendControl(webSocket, 'error', { message: `Unknown ??? control: ${control[0]}, ${control[1]}` })
       break;
 
   }
@@ -220,7 +228,6 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
   });
 
   webSocket.send("Connection to server established.");
-  joinRoom(webSocket, 0);
   joinRoom(webSocket, lobbyRoomId);
 
   webSocket.on("close", () => {

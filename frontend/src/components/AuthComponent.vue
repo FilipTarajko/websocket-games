@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button'
 import { computed, ref } from 'vue'
 // @ts-ignore
 import { useJwt } from '@vueuse/integrations/useJwt'
+import { useSocketStore } from '@/stores/socketStore';
+const socketStore = useSocketStore()
 
 const username = ref('test')
 const password = ref('test')
-
-const yourUsername = ref('')
 
 async function register() {
   const response = await fetch('http://127.0.0.1:8000/register', {
@@ -77,14 +77,14 @@ async function cookies() {
   // console.log(JSON.parse(x))
   // console.log(x)
   if (x.token) {
-    yourUsername.value = useJwt(x.token).payload?.value.username || ''
+    socketStore.yourUsername = useJwt(x.token).payload?.value.username || ''
   } else {
-    yourUsername.value = ''
+    socketStore.yourUsername = ''
   }
 }
 
 const loggedIn = computed(() => {
-  return yourUsername.value !== ''
+  return socketStore.yourUsername !== ''
 })
 
 cookies()
@@ -92,8 +92,8 @@ cookies()
 
 <template>
   <div>
-    <div style="color: green;" v-if="yourUsername">
-      your name: {{ yourUsername }}
+    <div style="color: green;" v-if="socketStore.yourUsername">
+      your name: {{ socketStore.yourUsername }}
     </div>
     <div style="color: red;" v-else>
       you are not logged in

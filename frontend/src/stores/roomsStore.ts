@@ -4,7 +4,7 @@ import { useStorage } from '@vueuse/core'
 import { useSocketStore } from './socketStore'
 
 export const useRoomsStore = defineStore('roomsStore', () => {
-  const currentRoom: Ref<{ name: string, id: number }> = ref({ name: 'none', id: 0 })
+  const currentRoom: Ref<{ name: string, id: number, ownerName: string | null }> = ref({ name: 'none', id: 0, ownerName: null })
   const rooms: Ref<Array<any>> = useStorage('rooms', [])
 
   const socketStore = useSocketStore()
