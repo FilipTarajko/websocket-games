@@ -27,7 +27,7 @@ type Room = {
   name: string;
   users: any[];
   owner: any;
-  public: boolean;
+  password: string;
   game: null | TicTacToeGame | DrawingGame;
 };
 
@@ -38,7 +38,7 @@ const rooms: Room[] = [
     name: "lobby",
     users: [],
     owner: null,
-    public: true,
+    password: "",
     game: null
   },
 ];
@@ -50,7 +50,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", authRouter);
 
 app.get("/rooms", (req, res) => {
-  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, public: room.public, gameName: room.game?.gameName || "no game" })));
+  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, hasPassword: room.password.length > 0, gameName: room.game?.gameName || "no game" })));
 });
 
 if (process.env.NODE_ENV === "development") {
@@ -65,12 +65,19 @@ function onSocketError(err: any) {
   console.error(err);
 }
 
-function createRoom(webSocket: any, roomName: string) {
-  const newRoom = { id: nextRoomId, name: roomName, users: [], owner: webSocket.user, public: true, game: null };
+function createRoom(webSocket: any, roomInitData: any) {
+  const newRoom = {
+    id: nextRoomId,
+    name: roomInitData.name || (webSocket.user.username + "'s room"),
+    users: [],
+    owner: webSocket.user,
+    password: roomInitData.password,
+    game: null
+  };
   nextRoomId += 1;
   rooms.push(newRoom);
   webSocket.send(`Created room: ${newRoom.name} (${newRoom.id})`);
-  joinRoom(webSocket, newRoom.id);
+  joinRoom(webSocket, { newRoomId: newRoom.id, password: newRoom.password });
   return newRoom;
 }
 
@@ -129,13 +136,17 @@ function generateRoomPublicData(room: any) {
   return { id: room.id, name: room.name, ownerName: room.owner?.username, users: room.users }
 }
 
-function joinRoom(webSocket: any, newRoomId: number) {
-  leaveRoom(webSocket);
-  const newRoom = rooms.find((room) => room.id === newRoomId);
+function joinRoom(webSocket: any, joinData: any) {
+  const newRoom = rooms.find((room) => room.id === joinData.newRoomId);
   if (!newRoom) {
     sendControl(webSocket, 'rooms/not_found')
     return;
   }
+  if (newRoom.password != joinData.password) {
+    sendControl(webSocket, 'rooms/wrong_password')
+    return;
+  }
+  leaveRoom(webSocket);
   webSocket.roomId = newRoom.id;
   newRoom.users.push(webSocket.user);
   sendToAllPlayersInRoom(newRoom, ["rooms/update", generateRoomPublicData(newRoom)])
@@ -251,7 +262,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
   });
 
   webSocket.send("Connection to server established.");
-  joinRoom(webSocket, lobbyRoomId);
+  joinRoom(webSocket, { newRoomId: lobbyRoomId, password: "" });
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
