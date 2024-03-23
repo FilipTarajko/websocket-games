@@ -106,7 +106,7 @@ onMounted(() => {
             </div>
           </div>
           <div style="height: 100%;" v-else-if="socketStore.gameState.gameName == 'Drawing'">
-            <div class="h-1/6 w-full text-center flex flex-col">
+            <div class="h-1/6 w-full text-center flex flex-col select-none">
               <div v-for="lightnessIterator in 11" style="height: 12.5%; width: 100%; display: flex">
                 <div v-for="hueIterator in 40" style="height: 100%; width: 2.5%;">
                   <div
@@ -117,7 +117,7 @@ onMounted(() => {
               </div>
             </div>
             <!-- <div class="flex flex-row justify-center w-full h-full"> -->
-            <div class="w-full h-5/6"
+            <div class="w-full h-5/6 select-none"
               style="display: grid; grid-template-columns: repeat(30, 3.333%); grid-template-rows: repeat(30, 3.333%);">
               <div style="width: 100%; height: 100%;" v-for="field, i in socketStore.gameState.board">
                 <div @click="draw(i)" @mouseover="drawIfMousePressed(i)"
