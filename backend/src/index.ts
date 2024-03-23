@@ -141,7 +141,7 @@ function joinRoom(webSocket: any, joinData: any) {
     sendControl(webSocket, 'rooms/not_found')
     return;
   }
-  if (newRoom.password != joinData.password) {
+  if (newRoom.password && newRoom.password != joinData.password) {
     sendControl(webSocket, 'rooms/wrong_password')
     return;
   }
