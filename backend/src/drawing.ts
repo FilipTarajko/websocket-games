@@ -8,7 +8,10 @@ export class DrawingGame {
     }
 
     place(data: any, _user: any) {
-        if (data.position < 0 || data.position > this.board.length) {
+        if (data.index < 0 || data.index > this.board.length) {
+            return false;
+        }
+        if (this.board[data.index] === data.color) {
             return false;
         }
         else {
