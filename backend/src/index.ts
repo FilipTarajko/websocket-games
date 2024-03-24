@@ -216,14 +216,25 @@ function interpretControl(control: any, webSocket: any) {
           break;
         case 'setGame':
           if (room && (room.owner === webSocket.user)) {
-            if (control[1] === "tictactoe") {
+            let playerSlotsPlayers: any = []
+            if (room.game && "playerSpots" in room.game) {
+              playerSlotsPlayers = room.game.playerSpots.map((spot) => spot.player)
+            }
+            let gameFound = true;
+            let gameName = control[1].name;
+            if (gameName === "tictactoe") {
               room.game = new TicTacToeGame()
-              updateDataForGameClients(room, "game/set")
-            } else if (control[1] === "drawing") {
+            } else if (gameName === "drawing") {
               room.game = new DrawingGame()
-              updateDataForGameClients(room, "game/set")
-            } else if (control[1] === "rockpaperscissors") {
+            } else if (gameName === "rockpaperscissors") {
               room.game = new RockPaperScissorsGame()
+            } else {
+              gameFound = false;
+            }
+            if (gameFound) {
+              if (room.game && "playerSpots" in room.game && control[1].keepPlayersInSpots) {
+                room.game.playerSpots = room.game.playerSpots.map((spot: any, index: any) => ({ ...spot, player: playerSlotsPlayers[index] }))
+              }
               updateDataForGameClients(room, "game/set")
             }
           }

@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { useRoomsStore } from '@/stores/roomsStore';
 import { useSocketStore } from '@/stores/socketStore';
 
@@ -10,6 +12,8 @@ const socketStore = useSocketStore()
 
 const isMouseDown = ref(false)
 const selectedColor = ref("#ffffff")
+
+const keepPlayersInSpots = ref(true);
 
 const messageToSay = ref('')
 function sayInRoom() {
@@ -192,16 +196,26 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-col gap-1 mb-2">
+          <div class="flex gap-4">
+            <Label for="keepPlayersInSpotsSwitch">keep players in spots</Label>
+            <Switch id="keepPlayersInSpotsSwitch" v-model:checked="keepPlayersInSpots" />
+          </div>
+          <!--
+            <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
+            @click="() => { socketStore.sendControl('rooms/newGame', keepPlayersInSpots) }">
+            play again
+          </Button>
+        -->
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="() => { socketStore.sendControl('rooms/setGame', 'tictactoe') }">
+            @click="() => { socketStore.sendControl('rooms/setGame', { name: 'tictactoe', keepPlayersInSpots }) }">
             set game to TicTacToe
           </Button>
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="() => { socketStore.sendControl('rooms/setGame', 'drawing') }">
+            @click="() => { socketStore.sendControl('rooms/setGame', { name: 'drawing', keepPlayersInSpots }) }">
             set game to drawing
           </Button>
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="() => { socketStore.sendControl('rooms/setGame', 'rockpaperscissors') }">
+            @click="() => { socketStore.sendControl('rooms/setGame', { name: 'rockpaperscissors', keepPlayersInSpots }) }">
             set game to rock paper scissors
           </Button>
         </div>
