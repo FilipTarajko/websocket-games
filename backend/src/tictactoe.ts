@@ -55,14 +55,18 @@ export class TicTacToeGame {
         }
     }
 
-    place(position: number) {
+    place(position: number, user: User) {
+        if (this.playerSpots[(this.turn + 1) % 2].player?.id != user.id) {
+            return false;
+        }
         if (position < 0 || position > 8 || this.board[position] || this.winner) {
-            return;
+            return false;
         }
         else {
             this.board[position] = this.playerSpots[(this.turn + 1) % 2].name;
             this.turn++;
             this.checkIfWon();
+            return true;
         }
     }
 }

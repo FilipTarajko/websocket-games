@@ -7,12 +7,13 @@ export class DrawingGame {
         this.gameName = "Drawing";
     }
 
-    place(data: any) {
+    place(data: any, _user: any) {
         if (data.position < 0 || data.position > this.board.length) {
-            return;
+            return false;
         }
         else {
             this.board[data.index] = data.color;
+            return true;
         }
     }
 }

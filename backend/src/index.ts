@@ -213,14 +213,15 @@ function interpretControl(control: any, webSocket: any) {
           break;
         case 'place':
           if (room && room.game) {
-            room.game.place(control[1]);
-            if ("winner" in room.game && room.game.winner) {
-              sendToAllPlayersInRoom(room, ["game/ended", room.game])
-            } else {
-              if (room.game.gameName === "Drawing") {
-                sendToAllPlayersInRoom(room, ["game/updatePixel", { index: control[1].index, color: control[1].color }])
+            if (room.game.place(control[1], webSocket.user)) {
+              if ("winner" in room.game && room.game.winner) {
+                sendToAllPlayersInRoom(room, ["game/ended", room.game])
               } else {
-                sendToAllPlayersInRoom(room, ["game/update", room.game])
+                if (room.game.gameName === "Drawing") {
+                  sendToAllPlayersInRoom(room, ["game/updatePixel", { index: control[1].index, color: control[1].color }])
+                } else {
+                  sendToAllPlayersInRoom(room, ["game/update", room.game])
+                }
               }
             }
           }
