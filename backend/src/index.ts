@@ -8,9 +8,12 @@ import jwt from "jsonwebtoken";
 import logger from "morgan";
 import path from "path";
 import WebSocket from "ws";
+// @ts-ignore
 import { TicTacToeGame } from "./TicTacToe";
 // @ts-ignore
 import { DrawingGame } from "./Drawing";
+// @ts-ignore
+import { RockPaperScissorsGame } from "./RockPaperScissors";
 
 const port = process.env.PORT ?? 3000;
 
@@ -28,7 +31,7 @@ type Room = {
   users: any[];
   owner: any;
   password: string;
-  game: null | TicTacToeGame | DrawingGame;
+  game: null | TicTacToeGame | DrawingGame | RockPaperScissorsGame;
 };
 
 let nextRoomId = 2;
@@ -113,7 +116,7 @@ function leaveRoom(webSocket: any) {
         for (let i = 0; i < oldRoom.game.playerSpots.length; i++) {
           if (oldRoom.game.playerSpots[i].player?.id == webSocket.user.id) {
             oldRoom.game.playerSpots[i].player = null;
-            sendToAllPlayersInRoom(oldRoom, ["game/update", oldRoom.game])
+            updateDataForGameClients(oldRoom, "game/update")
           }
         }
       }
@@ -125,10 +128,6 @@ function leaveRoom(webSocket: any) {
 
 function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
   webSocket.send(JSON.stringify([name, data]));
-}
-
-function sendGameState(webSocket: any, room: any) {
-  webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "" }]));
 }
 
 function generateRoomPublicData(room: any) {
@@ -150,7 +149,9 @@ function joinRoom(webSocket: any, joinData: any) {
   newRoom.users.push(webSocket.user);
   sendToAllPlayersInRoom(newRoom, ["rooms/update", generateRoomPublicData(newRoom)])
   sendControl(webSocket, "rooms/joined", generateRoomPublicData(newRoom))
-  sendGameState(webSocket, newRoom)
+  // sendGameState(webSocket, newRoom)
+  // webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "" }]));
+  sendPreparedGameState(webSocket, newRoom, "game/set");
 }
 
 function sendToAllPlayersInRoom(room: any, control: any) {
@@ -161,6 +162,32 @@ function sendToAllPlayersInRoom(room: any, control: any) {
     }
   })
 }
+
+
+function sendPreparedGameState(webSocket: any, room: any, controlName: string) {
+  let preparedGameData = structuredClone(room.game)
+  if (preparedGameData && "playerSpots" in preparedGameData && "strategic_data" in preparedGameData.playerSpots[0]) {
+    for (let i = 0; i < preparedGameData.playerSpots.length; i++) {
+      // @ts-ignore
+      if (preparedGameData?.playerSpots[i].player?.id == webSocket.user.id) {
+        // @ts-ignore
+        preparedGameData.your_strategic_data = preparedGameData.playerSpots[i].strategic_data;
+      }
+      delete preparedGameData.playerSpots[i].strategic_data;
+    }
+  }
+  webSocket.send(JSON.stringify([controlName, preparedGameData || { gameName: "" }]))
+}
+
+function updateDataForGameClients(room: Room, controlName: string) {
+  webSocketServer.clients.forEach(function each(client) {
+    // @ts-ignore
+    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
+      sendPreparedGameState(client, room, controlName);
+    }
+  })
+}
+
 
 function interpretControl(control: any, webSocket: any) {
   let room = rooms.find((room) => room.users.includes(webSocket.user))
@@ -191,10 +218,13 @@ function interpretControl(control: any, webSocket: any) {
           if (room && (room.owner === webSocket.user)) {
             if (control[1] === "tictactoe") {
               room.game = new TicTacToeGame()
-              sendToAllPlayersInRoom(room, ["game/set", room.game])
+              updateDataForGameClients(room, "game/set")
             } else if (control[1] === "drawing") {
               room.game = new DrawingGame()
-              sendToAllPlayersInRoom(room, ["game/set", room.game])
+              updateDataForGameClients(room, "game/set")
+            } else if (control[1] === "rockpaperscissors") {
+              room.game = new RockPaperScissorsGame()
+              updateDataForGameClients(room, "game/set")
             }
           }
           break;
@@ -208,19 +238,20 @@ function interpretControl(control: any, webSocket: any) {
         case 'takeSpot':
           if (room && room.game && "takeSpot" in room.game) {
             room.game.takeSpot(control[1], webSocket.user);
-            sendToAllPlayersInRoom(room, ["game/update", room.game])
+            updateDataForGameClients(room, "game/update")
           }
           break;
         case 'place':
           if (room && room.game) {
+            // @ts-ignore
             if (room.game.place(control[1], webSocket.user)) {
               if ("winner" in room.game && room.game.winner) {
-                sendToAllPlayersInRoom(room, ["game/ended", room.game])
+                updateDataForGameClients(room, "game/ended")
               } else {
                 if (room.game.gameName === "Drawing") {
                   sendToAllPlayersInRoom(room, ["game/updatePixel", { index: control[1].index, color: control[1].color }])
                 } else {
-                  sendToAllPlayersInRoom(room, ["game/update", room.game])
+                  updateDataForGameClients(room, "game/update")
                 }
               }
             }

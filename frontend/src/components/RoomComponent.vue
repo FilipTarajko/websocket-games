@@ -23,6 +23,22 @@ function setSelectedColor(color: string) {
   selectedColor.value = color
 }
 
+const isYourTurnRockPaperScissors = computed(() => {
+  if (socketStore.gameState.winner) {
+    return false;
+  }
+  if (socketStore.gameState?.gameName != 'RockPaperScissors') {
+    return false;
+  }
+  if (!socketStore.gameState.playerSpots.map((e: any) => e?.player?.username).includes(socketStore.yourUsername)) {
+    return false
+  }
+  if (socketStore.gameState.your_strategic_data) {
+    return false
+  }
+  return true
+});
+
 const isItYourTicTacToeTurn = computed(() => {
   if (socketStore.gameState.winner) {
     return false;
@@ -89,6 +105,22 @@ onMounted(() => {
     <div class="w-6/12 h-120 px-2">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
         <div style="height: 100%;" v-if="socketStore.gameState">
+          <div v-if="socketStore.gameState.gameName == 'RockPaperScissors'">
+            <div class="h-12 w-full text-center text-4xl">
+              <span v-if="socketStore.gameState.winner">
+                <span v-if="socketStore.gameState.winner != 'draw'">winner: </span>{{ socketStore.gameState.winner }}
+              </span>
+            </div>
+            <div class="flex flex-row justify-center">
+              <div class="flex flex-col gap-4 w-full pl-8 pr-8">
+                <Button v-for="choice in ['rock', 'paper', 'scissors']" :disabled="!isYourTurnRockPaperScissors"
+                  @click="() => { socketStore.sendControl('game/place', choice) }"
+                  class="border-gray-300 border-2 border-solid h-24 w-full text-6xl text-center">
+                  {{ choice }}
+                </Button>
+              </div>
+            </div>
+          </div>
           <div v-if="socketStore.gameState.gameName == 'TicTacToe'">
             <div class="h-12 w-full text-center text-4xl">
               <span v-if="socketStore.gameState.winner">
@@ -167,6 +199,10 @@ onMounted(() => {
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
             @click="() => { socketStore.sendControl('rooms/setGame', 'drawing') }">
             set game to drawing
+          </Button>
+          <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
+            @click="() => { socketStore.sendControl('rooms/setGame', 'rockpaperscissors') }">
+            set game to rock paper scissors
           </Button>
         </div>
       </div>
