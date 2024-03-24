@@ -48,7 +48,8 @@ function joinRoom(id: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="room in roomsStore.rooms" :key="room.id">
+        <TableRow v-for="room in roomsStore.rooms" :key="room.id"
+          :style="room.id == roomsStore.currentRoom.id ? 'background-color: hsl(120 80% 10%);' : ''">
           <TableCell>{{ room.id }}</TableCell>
           <TableCell>{{ room.name }}</TableCell>
           <TableCell>{{ room.usersLenght }}</TableCell>
