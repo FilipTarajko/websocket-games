@@ -131,8 +131,8 @@ onMounted(() => {
               <div class="grid grid-cols-3 gap-4 w-80">
                 <Button v-for="spot, i in socketStore.gameState.board" :disabled="spot || !isItYourTicTacToeTurn"
                   @click="() => { socketStore.sendControl('game/place', i) }"
-                  class="border-gray-300 border-2 border-solid h-24 w-24 text-6xl text-center">
-                  {{ spot || i + 1 }}
+                  :class="(spot ? 'text-6xl' : 'text-2xl') + ' border-gray-300 border-2 border-solid h-24 w-24 text-center'">
+                  {{ spot || (i + 1) }}
                 </Button>
               </div>
             </div>
