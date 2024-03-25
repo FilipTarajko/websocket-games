@@ -27,6 +27,10 @@ Project with some multiplayer games playable in real-time over websockets
 
 ![Drawing](readmePictures/drawing.png "Drawing")
 
+##  Rock, paper, scissors
+
+![Rock, paper, scissors](readmePictures/rockpaperscissors.png "Rock, paper, scissors")
+
 ### Run frontend with hot reloading
 
 ```
