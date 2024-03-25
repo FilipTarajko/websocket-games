@@ -197,7 +197,8 @@ onMounted(() => {
         <div class="flex flex-col gap-1 mb-2">
           <div class="flex gap-4">
             <Label for="keepPlayersInSpotsSwitch">keep players in spots</Label>
-            <Switch id="keepPlayersInSpotsSwitch" v-model:checked="keepPlayersInSpots" />
+            <Switch :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername" id="keepPlayersInSpotsSwitch"
+              v-model:checked="keepPlayersInSpots" />
           </div>
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
             @click="() => { socketStore.sendControl('rooms/setGame', { name: 'tictactoe', keepPlayersInSpots }) }">
