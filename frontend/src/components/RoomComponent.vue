@@ -87,16 +87,15 @@ onMounted(() => {
 
 <template>
   <div v-text="`room: ${roomsStore.currentRoom.name} (id: ${roomsStore.currentRoom.id})`"></div>
-  <div class="flex flex-row mt-4 ">
-    <div class="w-3/12">
-      <div id="chat" class="border-solid border-2 border-gray-500 h-96 overflow-auto">
+  <div class="flex flex-row mt-4 flex-wrap">
+    <div class="h-120 w-1/2 order-3 grid lg:w-3/12 lg:order-1" style="grid-template-rows: 1fr auto;">
+      <div id="chat" class="border-solid border-2 border-gray-500 overflow-auto mb-2">
         <template v-for="message in socketStore.chatMessages">
-          <div v-if="message.author">
+          <div v-if="message.author" class="pl-1">
             <span v-text="message.author.username"></span>:
             <span v-text="message.message"></span>
           </div>
-          <div v-else>
-            <hr style="margin-top: -0.5px; margin-bottom: 2px; border-color: gray;">
+          <div v-else style="background-color: hsla(120, 100%, 50%, 0.2);" class="my-1 pl-1">
             <span v-text="message"></span>
           </div>
         </template>
@@ -106,7 +105,7 @@ onMounted(() => {
         <Button @click="sayInRoom">send</Button>
       </div>
     </div>
-    <div class="w-6/12 h-120 px-2">
+    <div class="h-120 w-full order-2 mb-2 px-0 lg:px-2 lg:mb-0 lg:w-6/12">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
         <div style="height: 100%;" v-if="socketStore.gameState">
           <div v-if="socketStore.gameState.gameName == 'RockPaperScissors'">
@@ -166,7 +165,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div class="w-3/12 h-120">
+    <div class="h-120 w-1/2 order-4 pl-2 lg:pl-0 lg:w-3/12">
       <div class="h-full w-full border-2 border-solid border-gray-500 flex flex-col justify-between items-center">
         <div>
           <div v-if="socketStore?.gameState?.playerSpots">
@@ -200,12 +199,6 @@ onMounted(() => {
             <Label for="keepPlayersInSpotsSwitch">keep players in spots</Label>
             <Switch id="keepPlayersInSpotsSwitch" v-model:checked="keepPlayersInSpots" />
           </div>
-          <!--
-            <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="() => { socketStore.sendControl('rooms/newGame', keepPlayersInSpots) }">
-            play again
-          </Button>
-        -->
           <Button :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
             @click="() => { socketStore.sendControl('rooms/setGame', { name: 'tictactoe', keepPlayersInSpots }) }">
             set game to TicTacToe
