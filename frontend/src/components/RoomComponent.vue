@@ -153,7 +153,7 @@ onMounted(() => {
             </div>
             <!-- <div class="flex flex-row justify-center w-full h-full"> -->
             <div class="w-full h-5/6 select-none"
-              style="display: grid; grid-template-columns: repeat(30, 3.333%); grid-template-rows: repeat(30, 3.333%);">
+              style="display: grid; grid-template-columns: repeat(40, 2.5%); grid-template-rows: repeat(30, 3.333%);">
               <div style="width: 100%; height: 100%;" v-for="field, i in socketStore.gameState.board">
                 <div @click="draw(i)" @mouseover="drawIfMousePressed(i)"
                   :style="`background-color: ${field}; width: 100%; height: 100%;`">

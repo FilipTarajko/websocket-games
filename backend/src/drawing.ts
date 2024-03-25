@@ -3,7 +3,7 @@ export class DrawingGame {
     gameName: string
 
     constructor() {
-        this.board = Array.from({ length: 900 }, () => "#ffffff");
+        this.board = Array.from({ length: 1200 }, () => "#ffffff");
         this.gameName = "Drawing";
     }
 
