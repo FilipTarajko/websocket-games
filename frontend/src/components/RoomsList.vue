@@ -12,6 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useColorMode } from '@vueuse/core'
+
+const mode = useColorMode()
 
 const roomsStore = useRoomsStore()
 const socketStore = useSocketStore()
@@ -32,6 +35,10 @@ function joinRoom(id: number) {
     newRoomId: id, password: document.getElementById(`room${id}password`)?.value
   })
 }
+
+function roomBackgroundColor(roomId: number) {
+  return roomId == roomsStore.currentRoom.id ? `background-color: hsl(120 80% ${mode.value == "dark" ? "10%" : "85%"});` : ''
+}
 </script>
 
 <template>
@@ -48,8 +55,7 @@ function joinRoom(id: number) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="room in roomsStore.rooms" :key="room.id"
-          :style="room.id == roomsStore.currentRoom.id ? 'background-color: hsl(120 80% 10%);' : ''">
+        <TableRow v-for="room in roomsStore.rooms" :key="room.id" :style="roomBackgroundColor(room.id)">
           <TableCell>{{ room.id }}</TableCell>
           <TableCell>{{ room.name }}</TableCell>
           <TableCell>{{ room.usersLenght }}</TableCell>
