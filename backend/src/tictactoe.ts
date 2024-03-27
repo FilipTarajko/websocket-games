@@ -34,6 +34,14 @@ export class TicTacToeGame {
         }
     }
 
+    leaveSpot(user: User) {
+        for (let i = 0; i < this.playerSpots.length; i++) {
+            if (this.playerSpots[i].player?.id == user?.id) {
+                this.playerSpots[i].player = null;
+            }
+        }
+    }
+
     checkIfWon() {
         const winningCombinations = [
             [0, 1, 2],

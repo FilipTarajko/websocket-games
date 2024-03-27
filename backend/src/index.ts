@@ -252,6 +252,12 @@ function interpretControl(control: any, webSocket: any) {
             updateDataForGameClients(room, "game/update")
           }
           break;
+        case 'leaveSpot':
+          if (room && room.game && "leaveSpot" in room.game) {
+            room.game.leaveSpot(webSocket.user);
+            updateDataForGameClients(room, "game/update")
+          }
+          break;
         case 'place':
           if (room && room.game) {
             // @ts-ignore

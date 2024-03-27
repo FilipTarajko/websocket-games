@@ -31,6 +31,14 @@ export class RockPaperScissorsGame {
         }
     }
 
+    leaveSpot(user: User) {
+        for (let i = 0; i < this.playerSpots.length; i++) {
+            if (this.playerSpots[i].player?.id == user?.id) {
+                this.playerSpots[i].player = null;
+            }
+        }
+    }
+
     checkIfWon() {
         if (this.playerSpots[0].strategic_data && this.playerSpots[1].strategic_data) {
             let choice1 = this.playerSpots[0].strategic_data;

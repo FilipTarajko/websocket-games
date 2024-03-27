@@ -27,6 +27,10 @@ function setSelectedColor(color: string) {
   selectedColor.value = color
 }
 
+const playerHasGameRole = computed(() => {
+  return socketStore.gameState?.playerSpots?.find((e: any) => e?.player?.username == socketStore.yourUsername)
+})
+
 const isYourTurnRockPaperScissors = computed(() => {
   if (socketStore.gameState.winner) {
     return false;
@@ -182,6 +186,8 @@ onMounted(() => {
                 </span>
               </span>
             </div>
+            <Button :disabled="!playerHasGameRole" @click="() => { socketStore.sendControl('game/leaveSpot') }">leave
+              role</Button>
           </div>
           <div class="mt-6">
             All users in room:
