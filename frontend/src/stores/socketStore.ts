@@ -74,6 +74,9 @@ export const useSocketStore = defineStore('socketStore', () => {
           case 'update':
             roomsStore.currentRoom = control[1]
             break;
+          case 'updateList':
+            roomsStore.rooms = control[1]
+            break;
         }
         break;
       case 'game':

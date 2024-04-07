@@ -47,10 +47,6 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.use("/", authRouter);
 
-app.get("/rooms", (req, res) => {
-  res.json(rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, hasPassword: room.password.length > 0, gameName: room.game?.gameName || "no game" })));
-});
-
 if (process.env.NODE_ENV === "development") {
   app.use(logger(":method :url"));
 }
@@ -159,6 +155,14 @@ function sendToAllPlayersInRoom(room: any, control: any) {
   })
 }
 
+function updateRoomList() {
+  webSocketServer.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(["rooms/updateList", rooms.map((room) => ({ id: room.id, name: room.name, usersLenght: room.users.length, hasPassword: room.password.length > 0, gameName: room.game?.gameName || "no game" }))]))
+    }
+  })
+
+}
 
 function sendPreparedGameState(webSocket: any, room: any, controlName: string) {
   let preparedGameData = structuredClone(room.game)
@@ -184,7 +188,6 @@ function updateDataForGameClients(room: Room, controlName: string) {
   })
 }
 
-
 function interpretControl(control: any, webSocket: any) {
   let room = rooms.find((room) => room.users.includes(webSocket.user))
   const controlParts = control[0].split('/');
@@ -193,12 +196,15 @@ function interpretControl(control: any, webSocket: any) {
       switch (controlParts[1]) {
         case 'create':
           createRoom(webSocket, control[1]);
+          updateRoomList()
           break;
         case 'join':
           joinRoom(webSocket, control[1]);
+          updateRoomList()
           break;
         case 'leave':
           leaveRoom(webSocket);
+          updateRoomList()
           break;
         case 'say':
           const roomId = rooms.find((room) => room.users.includes(webSocket.user))?.id;
@@ -232,6 +238,7 @@ function interpretControl(control: any, webSocket: any) {
                 room.game.playerSpots = room.game.playerSpots.map((spot: any, index: any) => ({ ...spot, player: playerSlotsPlayers[index] }))
               }
               updateDataForGameClients(room, "game/set")
+              updateRoomList()
             }
           }
           break;
@@ -307,6 +314,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
 
   webSocket.send("Connection to server established.");
   joinRoom(webSocket, { newRoomId: lobbyRoomId, password: "" });
+  updateRoomList();
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
