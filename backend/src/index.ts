@@ -6,14 +6,10 @@ import express from "express";
 import http from "http";
 import jwt from "jsonwebtoken";
 import logger from "morgan";
-import path from "path";
 import WebSocket from "ws";
-// @ts-ignore
-import { TicTacToeGame } from "./TicTacToe";
-// @ts-ignore
-import { DrawingGame } from "./Drawing";
-// @ts-ignore
-import { RockPaperScissorsGame } from "./RockPaperScissors";
+import { TicTacToeGame } from "./games/tictactoe";
+import { DrawingGame } from "./games/drawing";
+import { RockPaperScissorsGame } from "./games/rockPaperScissors";
 
 const port = process.env.PORT ?? 3000;
 
