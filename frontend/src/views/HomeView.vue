@@ -4,6 +4,7 @@ import RoomComponent from '@/components/RoomComponent.vue';
 import { useSocketStore } from '@/stores/socketStore';
 import router from '@/router';
 import { onMounted } from 'vue';
+import { useJwt } from '@vueuse/integrations/useJwt';
 const socketStore = useSocketStore();
 
 onMounted(async () => {
@@ -17,7 +18,8 @@ onMounted(async () => {
   })
   let cookies = (await response.json())
   if ("token" in cookies) {
-    // console.log("Token found, setting up socket")
+    // @ts-ignore
+    socketStore.yourUsername = useJwt(cookies.token).payload?.value.username || ''
     socketStore.setupSocket();
   } else {
     socketStore.yourUsername = ''
