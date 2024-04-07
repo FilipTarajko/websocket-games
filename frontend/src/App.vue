@@ -19,7 +19,7 @@ function changeTheme() {
 <template>
   <div class="p-4">
     <header class="flex justify-between">
-      ws-games
+      <a href="/">ws-games</a>
       <Button variant="outline" @click="changeTheme">
         <Icon v-if="mode == 'dark'" icon="radix-icons:moon" class="h-[1.2rem] w-[1.2rem]" />
         <Icon v-if="mode == 'light'" icon="radix-icons:sun" class="h-[1.2rem] w-[1.2rem]" />
