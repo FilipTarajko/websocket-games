@@ -51,6 +51,7 @@ async function login() {
   })
   console.log((await response.json()))
   await cookies()
+  socketStore.setupSocket();
   setTimeout(() => {
     router.push('/');
   }, 500)

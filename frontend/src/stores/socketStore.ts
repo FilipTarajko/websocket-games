@@ -4,13 +4,42 @@ import { useRoomsStore } from './roomsStore'
 import router from '@/router'
 
 export const useSocketStore = defineStore('socketStore', () => {
-  const socket = new WebSocket('ws://127.0.0.1:8000/ws')
+  let socket: WebSocket | null = null;
   const socketMessage = ref('')
   const chatMessages: Ref<any[]> = ref([])
   const gameState: Ref<any> = ref()
   const yourUsername: Ref<string> = ref("")
 
   const roomsStore = useRoomsStore()
+
+  function setupSocket() {
+    socket = new WebSocket('ws://127.0.0.1:8000/ws')
+
+    socket.addEventListener('message', (event) => {
+      // console.log("Message from server: ", event.data);
+      // const data = tryParseJson(event.data)
+      const control = tryParseControl(event.data)
+      // console.log(parsedData)
+      if (control) {
+        console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
+        interpretControl(control)
+        // currentRoomId.value = data.roomId
+        // if ('roomName' in data) {
+        //   currentRoomName.value = data.roomName
+        // }
+        // if ('roomId' in data) {
+        //   currentRoomId.value = data.roomId
+        // }
+      } else {
+        console.debug(event.data)
+      }
+    })
+
+    socket.addEventListener('close', () => {
+      console.log('Connection closed')
+      router.push({ name: 'auth' })
+    })
+  }
 
   function tryParseControl(string: string) {
     try {
@@ -25,7 +54,9 @@ export const useSocketStore = defineStore('socketStore', () => {
   }
 
   function sendControl(name: any, data: any = {}) {
-    socket.send(JSON.stringify([name, data]));
+    if (socket) {
+      socket.send(JSON.stringify([name, data]));
+    }
   }
 
   function interpretControl(control: any) {
@@ -67,9 +98,12 @@ export const useSocketStore = defineStore('socketStore', () => {
         }
     }
   }
+
   function sendMessage() {
-    const message = socketMessage.value
-    socket.send(message)
+    if (socket) {
+      const message = socketMessage.value
+      socket.send(message)
+    }
   }
 
   // socket.addEventListener('open', () => {
@@ -77,36 +111,12 @@ export const useSocketStore = defineStore('socketStore', () => {
   //   // socket.send('Hello from client')
   // })
 
-  socket.addEventListener('message', (event) => {
-    // console.log("Message from server: ", event.data);
-    // const data = tryParseJson(event.data)
-    const control = tryParseControl(event.data)
-    // console.log(parsedData)
-    if (control) {
-      console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
-      interpretControl(control)
-      // currentRoomId.value = data.roomId
-      // if ('roomName' in data) {
-      //   currentRoomName.value = data.roomName
-      // }
-      // if ('roomId' in data) {
-      //   currentRoomId.value = data.roomId
-      // }
-    } else {
-      console.debug(event.data)
-    }
-  })
-
-  socket.addEventListener('close', () => {
-    console.log('Connection closed')
-    router.push({ name: 'auth' })
-  })
-
   return {
     socket,
     sendMessage,
     sendControl,
     chatMessages,
+    setupSocket,
     gameState,
     yourUsername
   }
