@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useRoomsStore } from './roomsStore'
+import router from '@/router'
 
 export const useSocketStore = defineStore('socketStore', () => {
   const socket = new WebSocket('ws://127.0.0.1:8000/ws')
@@ -25,18 +26,6 @@ export const useSocketStore = defineStore('socketStore', () => {
 
   function sendControl(name: any, data: any = {}) {
     socket.send(JSON.stringify([name, data]));
-  }
-
-  function tryParseJson(unparsedString: string) {
-    try {
-      const o = JSON.parse(unparsedString)
-      if (o && typeof o === 'object') {
-        return o
-      }
-    } catch (e) {
-      return false
-    }
-    return false
   }
 
   function interpretControl(control: any) {
@@ -110,6 +99,7 @@ export const useSocketStore = defineStore('socketStore', () => {
 
   socket.addEventListener('close', () => {
     console.log('Connection closed')
+    router.push({ name: 'auth' })
   })
 
   return {

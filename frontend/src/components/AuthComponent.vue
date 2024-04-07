@@ -5,6 +5,7 @@ import { computed, ref } from 'vue'
 // @ts-ignore
 import { useJwt } from '@vueuse/integrations/useJwt'
 import { useSocketStore } from '@/stores/socketStore';
+import router from '@/router';
 const socketStore = useSocketStore()
 
 const username = ref('test')
@@ -49,7 +50,10 @@ async function login() {
     body: JSON.stringify({ username: username.value, password: password.value })
   })
   console.log((await response.json()))
-  cookies()
+  await cookies()
+  setTimeout(() => {
+    router.push('/');
+  }, 500)
 }
 
 async function me() {
