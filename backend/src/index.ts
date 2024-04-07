@@ -144,6 +144,7 @@ function joinRoom(webSocket: any, joinData: any) {
   // sendGameState(webSocket, newRoom)
   // webSocket.send(JSON.stringify([`game/set`, room.game || { gameName: "" }]));
   sendPreparedGameState(webSocket, newRoom, "game/set");
+  updateRoomList()
 }
 
 function sendToAllPlayersInRoom(room: any, control: any) {
@@ -196,11 +197,9 @@ function interpretControl(control: any, webSocket: any) {
       switch (controlParts[1]) {
         case 'create':
           createRoom(webSocket, control[1]);
-          updateRoomList()
           break;
         case 'join':
           joinRoom(webSocket, control[1]);
-          updateRoomList()
           break;
         case 'leave':
           leaveRoom(webSocket);
@@ -314,11 +313,11 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
 
   webSocket.send("Connection to server established.");
   joinRoom(webSocket, { newRoomId: lobbyRoomId, password: "" });
-  updateRoomList();
 
   webSocket.on("close", () => {
     console.log("Connection to client closed.");
     leaveRoom(webSocket);
+    updateRoomList()
   });
 
   webSocket.on("message", (messageToParse: any) => {
