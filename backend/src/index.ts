@@ -133,7 +133,7 @@ function joinRoom(webSocket: any, joinData: any) {
     return;
   }
   if (newRoom.password && newRoom.password != joinData.password) {
-    sendControl(webSocket, 'rooms/wrong_password')
+    sendControl(webSocket, 'rooms/wrong_password', { roomId: newRoom.id })
     return;
   }
   leaveRoom(webSocket);

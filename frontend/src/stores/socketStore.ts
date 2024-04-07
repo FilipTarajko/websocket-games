@@ -77,6 +77,17 @@ export const useSocketStore = defineStore('socketStore', () => {
           case 'updateList':
             roomsStore.rooms = control[1]
             break;
+          case 'wrong_password':
+            console.log("wrong password!")
+            let elem = document.getElementById(`room${control[1].roomId}password`)
+            console.log(elem);
+            if (elem) {
+              elem.style.backgroundColor = "";
+              setTimeout(() => {
+                elem.style.backgroundColor = "";
+              }, 30);
+            }
+            break;
         }
         break;
       case 'game':
