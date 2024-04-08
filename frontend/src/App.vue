@@ -14,6 +14,7 @@ function changeTheme() {
     mode.value = "light"
   }
 }
+
 </script>
 
 <template>

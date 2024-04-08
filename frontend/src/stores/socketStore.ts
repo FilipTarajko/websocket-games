@@ -13,7 +13,7 @@ export const useSocketStore = defineStore('socketStore', () => {
   const roomsStore = useRoomsStore()
 
   function setupSocket() {
-    socket = new WebSocket('ws://127.0.0.1:8000/ws')
+    socket = new WebSocket(import.meta.env.VITE_BACKEND_WS_ADDRESS + '/ws')
 
     socket.addEventListener('message', (event) => {
       // console.log("Message from server: ", event.data);

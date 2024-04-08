@@ -8,7 +8,7 @@ import { useJwt } from '@vueuse/integrations/useJwt';
 const socketStore = useSocketStore();
 
 onMounted(async () => {
-  const response = await fetch('http://127.0.0.1:8000/cookies', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies', {
     method: 'GET',
     credentials: "include",
     headers: {

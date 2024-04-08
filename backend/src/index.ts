@@ -11,7 +11,7 @@ import { TicTacToeGame } from "./games/tictactoe";
 import { DrawingGame } from "./games/drawing";
 import { RockPaperScissorsGame } from "./games/rockPaperScissors";
 
-const port = process.env.PORT ?? 3000;
+const port = process.env.PORT;
 
 const lobbyRoomId = 1
 
