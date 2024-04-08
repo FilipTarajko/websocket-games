@@ -82,10 +82,10 @@ export const useSocketStore = defineStore('socketStore', () => {
             let elem = document.getElementById(`room${control[1].roomId}password`)
             console.log(elem);
             if (elem) {
-              elem.style.backgroundColor = "";
+              elem.style.backgroundColor = "red";
               setTimeout(() => {
                 elem.style.backgroundColor = "";
-              }, 30);
+              }, 130);
             }
             break;
         }
