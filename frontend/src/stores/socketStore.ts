@@ -25,7 +25,9 @@ export const useSocketStore = defineStore('socketStore', () => {
       const control = tryParseControl(event.data)
       // console.log(parsedData)
       if (control) {
-        console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
+        if (import.meta.env.ENVIRONMENT === 'development') {
+          console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
+        }
         interpretControl(control)
         // currentRoomId.value = data.roomId
         // if ('roomName' in data) {

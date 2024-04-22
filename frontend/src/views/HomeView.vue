@@ -25,7 +25,6 @@ onMounted(async () => {
     socketStore.yourUsername = ''
     router.push('/auth');
   }
-  console.log(socketStore.socket);
 })
 
 

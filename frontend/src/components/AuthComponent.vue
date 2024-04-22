@@ -35,7 +35,6 @@ async function register() {
     body: JSON.stringify({ username: username.value, password: password.value })
   })
   let result = response;
-  console.log(result);
   if (result.status !== 201) {
     return "Error: "+await result.json();
   }
@@ -55,7 +54,6 @@ async function logout() {
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   });
-  console.log((await response.json()))
   cookies()
   return 'logged out'
 }
