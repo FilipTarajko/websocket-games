@@ -16,6 +16,7 @@ export const useSocketStore = defineStore('socketStore', () => {
     if (socket) {
       return
     }
+    // @ts-ignore
     socket = new WebSocket(import.meta.env.VITE_BACKEND_WS_ADDRESS + '/ws/')
 
     socket.addEventListener('message', (event) => {
