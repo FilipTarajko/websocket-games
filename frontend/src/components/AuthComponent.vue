@@ -16,7 +16,8 @@ const password = ref('test')
 
 async function tryAsyncFunction(callback: Function, action: string) {
   try {
-    toast({description: await callback()});
+    let result = await callback()
+    toast({description: result, variant: result.includes("Error") ? "destructive" : "default"});
   } catch (e) {
     toast({variant: "destructive", description: `error while trying to ${action}`})
   }
@@ -33,7 +34,15 @@ async function register() {
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   })
-  return response.json()
+  let result = response;
+  console.log(result);
+  if (result.status !== 201) {
+    return "Error: "+await result.json();
+  }
+  setTimeout(() => {
+    login();
+  }, 500);
+  return await result.json();
 }
 
 async function logout() {
@@ -48,6 +57,7 @@ async function logout() {
   });
   console.log((await response.json()))
   cookies()
+  return 'logged out'
 }
 
 async function login() {
@@ -60,12 +70,16 @@ async function login() {
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   })
-  console.log((await response.json()))
+  let result = response;
+  if (result.status > 299) {
+    return "Error: "+await result.json();
+  }
   await cookies()
   socketStore.setupSocket();
   setTimeout(() => {
     router.push('/');
   }, 500)
+  return "logged in!";
 }
 
 // async function me() {
