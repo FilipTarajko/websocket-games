@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router'
 import { useColorMode } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
+import Toaster from "@/components/ui/toast/Toaster.vue"
 
 const mode = useColorMode()
 
@@ -18,6 +19,7 @@ function changeTheme() {
 </script>
 
 <template>
+  <Toaster />
   <div class="p-4">
     <header class="flex justify-between">
       <a href="/">ws-games</a>

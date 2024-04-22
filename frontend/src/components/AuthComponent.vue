@@ -5,11 +5,22 @@ import { computed, ref } from 'vue'
 // @ts-ignore
 import { useJwt } from '@vueuse/integrations/useJwt'
 import { useSocketStore } from '@/stores/socketStore';
+import { useToast } from '@/components/ui/toast/use-toast'
+import Toaster from "@/components/ui/toast/Toaster.vue"
 import router from '@/router';
 const socketStore = useSocketStore()
+const { toast } = useToast()
 
 const username = ref('test')
 const password = ref('test')
+
+async function tryAsyncFunction(callback: Function, action: string) {
+  try {
+    toast({description: await callback()});
+  } catch (e) {
+    toast({variant: "destructive", description: `error while trying to ${action}`})
+  }
+}
 
 async function register() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/register/', {
@@ -22,7 +33,7 @@ async function register() {
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   })
-  console.log((await response.json()))
+  return response.json()
 }
 
 async function logout() {
@@ -57,17 +68,17 @@ async function login() {
   }, 500)
 }
 
-async function me() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/me/', {
-    method: 'GET',
-    credentials: "include",
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
-  console.log((await response.json()))
-}
+// async function me() {
+//   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/me/', {
+//     method: 'GET',
+//     credentials: "include",
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Access-Control-Allow-Origin': '*'
+//     }
+//   })
+//   console.log((await response.json()))
+// }
 
 async function cookies() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies/', {
@@ -98,6 +109,7 @@ cookies()
 
 <template>
   <div>
+    <Toaster />
     <div style="color: green;" v-if="socketStore.yourUsername">
       your name: {{ socketStore.yourUsername }}
     </div>
@@ -108,11 +120,12 @@ cookies()
       <Input :disabled="loggedIn" name="username input" v-model="username" placeholder="username" />
       <Input :disabled="loggedIn" name="password input" v-model="password" type="password" placeholder="password" />
       <div class="flex flex-row gap-2">
-        <Button :disabled="loggedIn" @click="() => { register() }">register</Button>
-        <Button :disabled="loggedIn" @click="() => { login() }">login</Button>
-        <Button :disabled="!loggedIn" @click="() => { logout() }">logout</Button>
-        <Button :disabled="!loggedIn" @click="() => { me() }">me</Button>
-        <Button @click="() => { cookies() }">cookies</Button>
+        <Button :disabled="loggedIn" @click="() => { tryAsyncFunction(register, 'register') }">register</Button>
+        <Button :disabled="loggedIn" @click="() => { tryAsyncFunction(login, 'log in') }">log in</Button>
+        <Button :disabled="!loggedIn" @click="() => { tryAsyncFunction(logout, 'log out') }">log out</Button>
+        <!-- debug -->
+        <!-- <Button :disabled="!loggedIn" @click="() => { me() }">me</Button>
+        <Button @click="() => { cookies() }">cookies</Button> -->
       </div>
     </div>
   </div>
