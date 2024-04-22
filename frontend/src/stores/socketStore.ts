@@ -19,22 +19,12 @@ export const useSocketStore = defineStore('socketStore', () => {
     socket = new WebSocket(import.meta.env.VITE_BACKEND_WS_ADDRESS + '/ws/')
 
     socket.addEventListener('message', (event) => {
-      // console.log("Message from server: ", event.data);
-      // const data = tryParseJson(event.data)
       const control = tryParseControl(event.data)
-      // console.log(parsedData)
       if (control) {
         if (import.meta.env.ENVIRONMENT === 'development') {
           console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
         }
         interpretControl(control)
-        // currentRoomId.value = data.roomId
-        // if ('roomName' in data) {
-        //   currentRoomName.value = data.roomName
-        // }
-        // if ('roomId' in data) {
-        //   currentRoomId.value = data.roomId
-        // }
       } else {
         console.debug(event.data)
       }
@@ -126,11 +116,6 @@ export const useSocketStore = defineStore('socketStore', () => {
       socket.send(message)
     }
   }
-
-  // socket.addEventListener('open', () => {
-  //   // console.log('Connected to server')
-  //   // socket.send('Hello from client')
-  // })
 
   return {
     socket,

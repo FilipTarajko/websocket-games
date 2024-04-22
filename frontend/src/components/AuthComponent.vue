@@ -101,10 +101,10 @@ async function cookies() {
       'Access-Control-Allow-Origin': '*'
     }
   })
-  let x = (await response.json())
+  let data = (await response.json())
   // console.log(JSON.parse(x))
   // console.log(x)
-  if (x.token) {
+  if (data.token) {
     // @ts-ignore
     socketStore.yourUsername = useJwt(x.token).payload?.value.username || ''
   } else {
