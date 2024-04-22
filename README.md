@@ -58,3 +58,9 @@ npx prisma migrate reset
 cd backend
 npx prisma studio
 ```
+
+### Deploy backend
+```
+cd backend
+fly deploy --ha=false
+```
