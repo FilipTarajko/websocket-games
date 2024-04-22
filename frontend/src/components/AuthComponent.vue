@@ -12,7 +12,7 @@ const username = ref('test')
 const password = ref('test')
 
 async function register() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/register', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/register/', {
     method: 'POST',
     credentials: "include",
     headers: {
@@ -26,7 +26,7 @@ async function register() {
 }
 
 async function logout() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/logout', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/logout/', {
     method: 'POST',
     credentials: "include",
     headers: {
@@ -40,7 +40,7 @@ async function logout() {
 }
 
 async function login() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/login', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/login/', {
     method: 'POST',
     credentials: "include",
     headers: {
@@ -58,7 +58,7 @@ async function login() {
 }
 
 async function me() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/me', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/me/', {
     method: 'GET',
     credentials: "include",
     headers: {
@@ -70,7 +70,7 @@ async function me() {
 }
 
 async function cookies() {
-  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies', {
+  const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies/', {
     method: 'GET',
     credentials: "include",
     headers: {

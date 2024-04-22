@@ -16,7 +16,7 @@ export const useSocketStore = defineStore('socketStore', () => {
     if (socket) {
       return
     }
-    socket = new WebSocket(import.meta.env.VITE_BACKEND_WS_ADDRESS + '/ws')
+    socket = new WebSocket(import.meta.env.VITE_BACKEND_WS_ADDRESS + '/ws/')
 
     socket.addEventListener('message', (event) => {
       // console.log("Message from server: ", event.data);
@@ -84,10 +84,12 @@ export const useSocketStore = defineStore('socketStore', () => {
             console.log("wrong password!")
             let elem = document.getElementById(`room${control[1].roomId}password`)
             console.log(elem);
-            if (elem) {
+            if (elem && elem.style) {
               elem.style.backgroundColor = "red";
               setTimeout(() => {
-                elem.style.backgroundColor = "";
+                if (elem && elem.style) {
+                  elem.style.backgroundColor = "";
+                }
               }, 130);
             }
             break;

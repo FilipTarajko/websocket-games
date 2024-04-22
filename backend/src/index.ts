@@ -16,9 +16,13 @@ const port = process.env.PORT;
 const lobbyRoomId = 1
 
 const app = express();
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN,
   credentials: true,
+  preflightContinue: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  optionSuccessStatus: 200
 }));
 
 type Room = {

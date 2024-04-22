@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 
 const router = Router();
 
-router.get("/cookies", async (req: any, res) => {
+router.get("/cookies/", async (req: any, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.json(req.cookies);
 });
 
-router.get("/me", checkAuth, async (req: any, res) => {
+router.get("/me/", checkAuth, async (req: any, res) => {
   res.setHeader('Content-Type', 'application/json');
   const tokenContent = jwt.decode(req.cookies.token);
   if (tokenContent != null && typeof tokenContent == "object" && "username" in tokenContent) {
@@ -23,7 +23,7 @@ router.get("/me", checkAuth, async (req: any, res) => {
   }
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout/", (req, res) => {
   res.clearCookie("token", {
     secure: true,
     sameSite: "none"
@@ -31,7 +31,7 @@ router.post("/logout", (req, res) => {
   res.json("Your cookie has been removed!");
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login/", async (req, res) => {
   if (!req.body.username || !req.body.password) {
     res.status(400).json("Username and password are required");
     return;
@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register/", async (req, res) => {
   if (!req.body.username || !req.body.password) {
     res.status(400).json("Username and password are required");
     return;
