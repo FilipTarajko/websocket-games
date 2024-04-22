@@ -21,7 +21,6 @@ const socketStore = useSocketStore()
 
 const newRoomData = ref({
   name: "",
-  // game: 'none',
   password: "",
 })
 

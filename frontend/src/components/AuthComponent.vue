@@ -102,11 +102,9 @@ async function cookies() {
     }
   })
   let data = (await response.json())
-  // console.log(JSON.parse(x))
-  // console.log(x)
   if (data.token) {
     // @ts-ignore
-    socketStore.yourUsername = useJwt(x.token).payload?.value.username || ''
+    socketStore.yourUsername = useJwt(data.token).payload?.value.username || ''
   } else {
     socketStore.yourUsername = ''
   }
