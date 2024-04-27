@@ -109,7 +109,7 @@ onMounted(() => {
         <Button @click="sayInRoom">send</Button>
       </div>
     </div>
-    <div class="h-120 w-full order-2 mb-2 px-0 lg:px-2 lg:mb-0 lg:w-6/12">
+    <div class="h-[23rem] xxs:h-120 w-full order-2 mb-2 px-0 lg:px-2 lg:mb-0 lg:w-6/12">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
         <div style="height: 100%;" v-if="socketStore.gameState">
           <div v-if="socketStore.gameState.gameName == 'RockPaperScissors'">
@@ -122,7 +122,7 @@ onMounted(() => {
               <div class="flex flex-col gap-4 w-full pl-8 pr-8">
                 <Button v-for="choice in ['rock', 'paper', 'scissors']" :disabled="!isYourTurnRockPaperScissors"
                   @click="() => { socketStore.sendControl('game/place', choice) }"
-                  class="border-gray-300 border-2 border-solid h-24 w-full text-6xl text-center">
+                  class="border-gray-300 border-2 border-solid h-16 xxs:h-24 w-full text-4xl xxxs:text-5xl xxs:text-6xl text-center">
                   {{ choice }}
                 </Button>
               </div>
@@ -135,10 +135,10 @@ onMounted(() => {
               </span>
             </div>
             <div class="flex flex-row justify-center">
-              <div class="grid grid-cols-3 gap-4 w-80">
+              <div class="grid grid-cols-3 gap-4 w-full xxs:w-80">
                 <Button v-for="spot, i in socketStore.gameState.board" :disabled="spot || !isItYourTicTacToeTurn"
                   @click="() => { socketStore.sendControl('game/place', i) }"
-                  :class="(spot ? 'text-6xl' : 'text-2xl') + ' border-gray-300 border-2 border-solid h-24 w-24 text-center'">
+                  :class="(spot ? 'text-6xl' : 'text-2xl') + ' border-gray-300 border-2 border-solid h-full xxs:h-24 aspect-square text-center'">
                   {{ spot || (i + 1) }}
                 </Button>
               </div>
