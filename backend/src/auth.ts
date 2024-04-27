@@ -86,8 +86,6 @@ router.post("/register/", async (req, res) => {
       return;
     }
     bcrypt.hash(req.body.password, salt, async function (err, hash) {
-      console.log(`Password: ${req.body.password}`);
-      console.log(`Hashed password: ${JSON.stringify(hash)}`);
       if (err) {
         res.status(500).json("Error while trying to register");
         return;
