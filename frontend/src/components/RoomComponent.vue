@@ -92,7 +92,7 @@ onMounted(() => {
 <template>
   <div v-text="`room: ${roomsStore.currentRoom.name} (id: ${roomsStore.currentRoom.id})`"></div>
   <div class="flex flex-row mt-4 flex-wrap">
-    <div class="h-120 w-1/2 order-3 grid lg:w-3/12 lg:order-1" style="grid-template-rows: 1fr auto;">
+    <div class="h-120 w-full order-6 grid lg:w-3/12 lg:order-1 xs:order-3 xs:w-1/2" style="grid-template-rows: 1fr auto;">
       <div id="chat" class="border-solid border-2 border-gray-500 overflow-auto mb-2">
         <template v-for="message in socketStore.chatMessages">
           <div v-if="message.author" class="pl-1">
@@ -169,7 +169,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div class="h-120 w-1/2 order-4 pl-2 lg:pl-0 lg:w-3/12">
+    <div class="h-120 w-full mb-2 order-4 lg:pl-0 lg:w-3/12 xs:mb-0 xs:w-1/2 xs:pl-2">
       <div class="h-full w-full border-2 border-solid border-gray-500 flex flex-col justify-between items-center">
         <div>
           <div v-if="socketStore?.gameState?.playerSpots">
