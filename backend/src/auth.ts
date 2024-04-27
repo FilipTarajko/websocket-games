@@ -96,6 +96,8 @@ router.post("/register/", async (req, res) => {
           password: hash,
         },
       });
+      const user = await prisma.user.findUnique({ where: { username: req.body.username } });
+      console.log("New user's id: ", user?.id);
     });
   });
   res.status(201).json("Account created");
