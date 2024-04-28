@@ -11,8 +11,8 @@ import router from '@/router';
 const socketStore = useSocketStore()
 const { toast } = useToast()
 
-const username = ref('test')
-const password = ref('test')
+const username = ref('')
+const password = ref('')
 
 async function tryAsyncFunction(callback: Function, action: string) {
   try {
