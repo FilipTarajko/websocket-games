@@ -20,8 +20,8 @@ function changeTheme() {
   <Toaster />
   <div class="p-4">
     <header class="flex justify-between">
-      <RouterLink :to="{ name: 'home' }">ws-games</RouterLink>
-      <RouterLink :to="{ name: 'auth' }">go to /auth</RouterLink>
+      <RouterLink :to="{ name: 'home' }" tabindex="0">ws-games</RouterLink>
+      <RouterLink :to="{ name: 'auth' }" tabindex="0">go to /auth</RouterLink>
       <Button variant="outline" @click="changeTheme">
         <Icon v-if="mode == 'dark'" icon="radix-icons:moon" class="h-[1.2rem] w-[1.2rem]" />
         <Icon v-if="mode == 'light'" icon="radix-icons:sun" class="h-[1.2rem] w-[1.2rem]" />
