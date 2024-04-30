@@ -218,17 +218,14 @@ onMounted(() => {
       >
         <div>
           <div v-if="socketStore?.gameState?.playerSpots">
-            Game roles:
-            <div v-for="(playerSpot, i) in socketStore.gameState?.playerSpots">
+            <div class="my-1">Game roles:</div>
+            <div v-for="(playerSpot, i) in socketStore.gameState?.playerSpots" class="h-8">
               {{ playerSpot.name }}:
-              <span>
-                <span v-if="playerSpot.player">
-                  {{ playerSpot.player.username }}
-                </span>
-                <span v-else>
-                  empty
-                  <Button @click="socketStore.sendControl('game/takeSpot', i)">join</Button>
-                </span>
+              {{ playerSpot.player?.username ?? 'empty' }}
+              <span v-if="!playerSpot.player">
+                <Button @click="socketStore.sendControl('game/takeSpot', i)" class="h-6"
+                  >join</Button
+                >
               </span>
             </div>
             <Button
