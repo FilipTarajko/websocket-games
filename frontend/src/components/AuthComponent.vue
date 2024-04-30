@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { computed, ref } from 'vue'
 // @ts-ignore
 import { useJwt } from '@vueuse/integrations/useJwt'
-import { useSocketStore } from '@/stores/socketStore';
+import { useSocketStore } from '@/stores/socketStore'
 import { useToast } from '@/components/ui/toast/use-toast'
-import Toaster from "@/components/ui/toast/Toaster.vue"
-import router from '@/router';
+import Toaster from '@/components/ui/toast/Toaster.vue'
+import router from '@/router'
 const socketStore = useSocketStore()
 const { toast } = useToast()
 
@@ -17,43 +17,42 @@ const password = ref('')
 async function tryAsyncFunction(callback: Function, action: string) {
   try {
     let result = await callback()
-    toast({description: result, variant: result.includes("Error") ? "destructive" : "default"});
+    toast({ description: result, variant: result.includes('Error') ? 'destructive' : 'default' })
   } catch (e) {
-    toast({variant: "destructive", description: `error while trying to ${action}`})
+    toast({ variant: 'destructive', description: `error while trying to ${action}` })
   }
 }
 
 async function register() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/register/', {
     method: 'POST',
-    credentials: "include",
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
-
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   })
-  let result = response;
+  let result = response
   if (result.status !== 201) {
-    return "Error: "+await result.json();
+    return 'Error: ' + (await result.json())
   }
   setTimeout(() => {
-    login();
-  }, 500);
-  return await result.json();
+    login()
+  }, 500)
+  return await result.json()
 }
 
 async function logout() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/logout/', {
     method: 'POST',
-    credentials: "include",
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify({ username: username.value, password: password.value })
-  });
+  })
   cookies()
   return 'logged out'
 }
@@ -61,23 +60,23 @@ async function logout() {
 async function login() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/login/', {
     method: 'POST',
-    credentials: "include",
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify({ username: username.value, password: password.value })
   })
-  let result = response;
+  let result = response
   if (result.status > 299) {
-    return "Error: "+await result.json();
+    return 'Error: ' + (await result.json())
   }
   await cookies()
-  socketStore.setupSocket();
+  socketStore.setupSocket()
   setTimeout(() => {
-    router.push('/');
+    router.push('/')
   }, 500)
-  return "logged in!";
+  return 'logged in!'
 }
 
 // async function me() {
@@ -95,13 +94,13 @@ async function login() {
 async function cookies() {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies/', {
     method: 'GET',
-    credentials: "include",
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     }
   })
-  let data = (await response.json())
+  let data = await response.json()
   if (data.token) {
     // @ts-ignore
     socketStore.yourUsername = useJwt(data.token).payload?.value.username || ''
@@ -120,19 +119,25 @@ cookies()
 <template>
   <div>
     <Toaster />
-    <div style="color: green;" v-if="socketStore.yourUsername">
+    <div style="color: green" v-if="socketStore.yourUsername">
       your name: {{ socketStore.yourUsername }}
     </div>
-    <div style="color: red;" v-else>
-      you are not logged in
-    </div>
+    <div style="color: red" v-else>you are not logged in</div>
     <div class="flex flex-col gap-2">
       <Input :disabled="loggedIn" name="username input" v-model="username" placeholder="username" />
-      <Input :disabled="loggedIn" name="password input" v-model="password" type="password" placeholder="password" />
+      <Input
+        :disabled="loggedIn"
+        name="password input"
+        v-model="password"
+        type="password"
+        placeholder="password"
+      />
       <div class="flex flex-row gap-2">
-        <Button :disabled="loggedIn" @click="() => { tryAsyncFunction(register, 'register') }">register</Button>
-        <Button :disabled="loggedIn" @click="() => { tryAsyncFunction(login, 'log in') }">log in</Button>
-        <Button :disabled="!loggedIn" @click="() => { tryAsyncFunction(logout, 'log out') }">log out</Button>
+        <Button :disabled="loggedIn" @click="tryAsyncFunction(register, 'register')"
+          >register</Button
+        >
+        <Button :disabled="loggedIn" @click="tryAsyncFunction(login, 'log in')">log in</Button>
+        <Button :disabled="!loggedIn" @click="tryAsyncFunction(logout, 'log out')">log out</Button>
         <!-- debug -->
         <!-- <Button :disabled="!loggedIn" @click="() => { me() }">me</Button>
         <Button @click="() => { cookies() }">cookies</Button> -->

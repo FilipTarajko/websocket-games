@@ -1,33 +1,31 @@
 <script setup lang="ts">
-import RoomsList from '@/components/RoomsList.vue';
-import RoomComponent from '@/components/RoomComponent.vue';
-import { useSocketStore } from '@/stores/socketStore';
-import router from '@/router';
-import { onMounted } from 'vue';
-import { useJwt } from '@vueuse/integrations/useJwt';
-const socketStore = useSocketStore();
+import RoomsList from '@/components/RoomsList.vue'
+import RoomComponent from '@/components/RoomComponent.vue'
+import { useSocketStore } from '@/stores/socketStore'
+import router from '@/router'
+import { onMounted } from 'vue'
+import { useJwt } from '@vueuse/integrations/useJwt'
+const socketStore = useSocketStore()
 
 onMounted(async () => {
   const response = await fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies/', {
     method: 'GET',
-    credentials: "include",
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*'
     }
   })
-  let cookies = (await response.json())
-  if ("token" in cookies) {
+  let cookies = await response.json()
+  if ('token' in cookies) {
     // @ts-ignore
     socketStore.yourUsername = useJwt(cookies.token).payload?.value.username || ''
-    socketStore.setupSocket();
+    socketStore.setupSocket()
   } else {
     socketStore.yourUsername = ''
-    router.push('/auth');
+    router.push('/auth')
   }
 })
-
-
 </script>
 
 <template>

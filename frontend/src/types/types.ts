@@ -1,18 +1,18 @@
 export type Table = {
-    id: number,
-    name: string,
-    columns: Column[],
-    rows: Row[]
+  id: number
+  name: string
+  columns: Column[]
+  rows: Row[]
 }
 
 export type Column = {
-    id: number,
-    name: string
+  id: number
+  name: string
 }
 
 export type Row = {
-    id: number,
-    fields: {
-        [key: string]: string,
-    },
+  id: number
+  fields: {
+    [key: string]: string
+  }
 }

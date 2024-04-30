@@ -3,19 +3,17 @@ import { RouterView } from 'vue-router'
 import { useColorMode } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
-import Toaster from "@/components/ui/toast/Toaster.vue"
+import Toaster from '@/components/ui/toast/Toaster.vue'
 
 const mode = useColorMode()
 
 function changeTheme() {
-  if (mode.value == "light") {
-    mode.value = "dark"
-  }
-  else {
-    mode.value = "light"
+  if (mode.value == 'light') {
+    mode.value = 'dark'
+  } else {
+    mode.value = 'light'
   }
 }
-
 </script>
 
 <template>
