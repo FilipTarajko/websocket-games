@@ -14,6 +14,8 @@ const playerHasGameRole = computed(() => {
     (e: any) => e?.player?.username == socketStore.yourUsername
   )
 })
+
+const gameNames = ['TicTacToe', 'Drawing', 'RockPaperScissors']
 </script>
 
 <template>
@@ -53,22 +55,11 @@ const playerHasGameRole = computed(() => {
         />
       </div>
       <Button
+        v-for="gameName in gameNames"
         :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-        @click="socketStore.setGame('tictactoe')"
+        @click="socketStore.setGame(gameName)"
       >
-        set game to TicTacToe
-      </Button>
-      <Button
-        :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-        @click="socketStore.setGame('drawing')"
-      >
-        set game to drawing
-      </Button>
-      <Button
-        :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-        @click="socketStore.setGame('rockpaperscissors')"
-      >
-        set game to rock paper scissors
+        set game to {{ gameName }}
       </Button>
     </div>
   </div>
