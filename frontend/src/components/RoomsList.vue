@@ -71,6 +71,7 @@ function roomBackgroundColor(roomId: number) {
               <Input
                 placeholder="password"
                 type="password"
+                autocomplete="new-password"
                 :form="`join_room_${room.id}`"
                 :id="`room${room.id}password`"
                 class="w-40"
@@ -106,6 +107,7 @@ function roomBackgroundColor(roomId: number) {
             ><Input
               v-model="newRoomData.password"
               placeholder="password (optional)"
+              autocomplete="new-password"
               class="mr-2 w-40"
               type="password"
               id="newRoomPassword"
