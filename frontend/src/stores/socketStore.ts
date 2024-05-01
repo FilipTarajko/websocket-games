@@ -26,13 +26,10 @@ export const useSocketStore = defineStore('socketStore', () => {
           console.log(`${control[0]}: ${JSON.stringify(control[1])}`)
         }
         interpretControl(control)
-      } else {
-        console.debug(event.data)
       }
     })
 
     socket.addEventListener('close', () => {
-      console.log('Connection closed')
       router.push({ name: 'auth' })
     })
   }
@@ -88,9 +85,7 @@ export const useSocketStore = defineStore('socketStore', () => {
             roomsStore.rooms = control[1]
             break
           case 'wrong_password':
-            console.log('wrong password!')
             let elem = document.getElementById(`room${control[1].roomId}password`)
-            console.log(elem)
             if (elem && elem.style) {
               elem.style.backgroundColor = 'red'
               setTimeout(() => {
@@ -119,7 +114,6 @@ export const useSocketStore = defineStore('socketStore', () => {
             gameState.value = control[1]
             break
           default:
-            console.log('Unknown game control')
             break
         }
     }

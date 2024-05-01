@@ -9,7 +9,6 @@ const isMouseDown = ref(false)
 const selectedColor = ref('#ffffff')
 
 function setSelectedColor(color: string) {
-  console.log('color selected', color)
   selectedColor.value = color
 }
 
