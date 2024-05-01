@@ -65,7 +65,7 @@ function roomBackgroundColor(roomId: number) {
           <TableCell>{{ room.id }}</TableCell>
           <TableCell>{{ room.name }}</TableCell>
           <TableCell>{{ room.usersLenght }}</TableCell>
-          <TableCell>{{ room.gameName }}</TableCell>
+          <TableCell class="w-40 min-w-40">{{ room.gameName }}</TableCell>
           <TableCell>
             <div v-if="room.hasPassword > 0">
               <Input
