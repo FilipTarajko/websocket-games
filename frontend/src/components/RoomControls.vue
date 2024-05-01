@@ -16,6 +16,13 @@ const playerHasGameRole = computed(() => {
 })
 
 const gameNames = ['TicTacToe', 'Drawing', 'RockPaperScissors']
+
+function toggleKeepPlayersInSpots() {
+  socketStore.changeSetting(
+    'keepPlayersInSpots',
+    !roomsStore.currentRoom.settings.keepPlayersInSpots
+  )
+}
 </script>
 
 <template>
@@ -51,7 +58,8 @@ const gameNames = ['TicTacToe', 'Drawing', 'RockPaperScissors']
         <Switch
           :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
           id="keepPlayersInSpotsSwitch"
-          v-model:checked="socketStore.keepPlayersInSpots"
+          :checked="roomsStore.currentRoom.settings.keepPlayersInSpots"
+          @click="toggleKeepPlayersInSpots()"
         />
       </div>
       <Button

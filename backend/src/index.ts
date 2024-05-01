@@ -32,6 +32,9 @@ type Room = {
   owner: any;
   password: string;
   game: null | TicTacToeGame | DrawingGame | RockPaperScissorsGame;
+  settings: {
+    keepPlayersInSpots: boolean;
+  }
 };
 
 let nextRoomId = 2;
@@ -42,7 +45,10 @@ const rooms: Room[] = [
     users: [],
     owner: null,
     password: "",
-    game: null
+    game: null,
+    settings: {
+      keepPlayersInSpots: true
+    }
   },
 ];
 
@@ -73,7 +79,10 @@ function createRoom(webSocket: any, roomInitData: any) {
     users: [],
     owner: webSocket.user,
     password: roomInitData.password,
-    game: null
+    game: null,
+    settings: {
+      keepPlayersInSpots: true
+    }
   };
   nextRoomId += 1;
   rooms.push(newRoom);
@@ -130,7 +139,7 @@ function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
 }
 
 function generateRoomPublicData(room: any) {
-  return { id: room.id, name: room.name, ownerName: room.owner?.username, users: room.users }
+  return { id: room.id, name: room.name, ownerName: room.owner?.username, users: room.users, settings: room.settings }
 }
 
 function joinRoom(webSocket: any, joinData: any) {
@@ -187,6 +196,16 @@ function sendPreparedGameState(webSocket: any, room: any, controlName: string) {
   webSocket.send(JSON.stringify([controlName, preparedGameData || { gameName: "" }]))
 }
 
+function updateSettingForGameClients(room: Room, setting: string) {
+  webSocketServer.clients.forEach(function each(client) {
+    // @ts-ignore
+    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
+      // @ts-ignore
+      client.send(JSON.stringify(["rooms/changeSetting", { name: setting, value: room.settings[setting] }]))
+    }
+  })
+}
+
 function updateDataForGameClients(room: Room, controlName: string) {
   webSocketServer.clients.forEach(function each(client) {
     // @ts-ignore
@@ -211,6 +230,15 @@ function interpretControl(control: any, webSocket: any) {
         case 'leave':
           leaveRoom(webSocket);
           updateRoomList()
+          break;
+        case 'changeSetting':
+          if (room && (room.owner === webSocket.user)) {
+            if (control[1].name in room.settings) {
+              // @ts-ignore
+              room.settings[control[1].name] = !!control[1].value;
+              updateSettingForGameClients(room, control[1].name)
+            }
+          }
           break;
         case 'say':
           const roomId = rooms.find((room) => room.users.includes(webSocket.user))?.id;
@@ -240,7 +268,7 @@ function interpretControl(control: any, webSocket: any) {
               gameFound = false;
             }
             if (gameFound) {
-              if (room.game && "playerSpots" in room.game && control[1].keepPlayersInSpots) {
+              if (room.game && "playerSpots" in room.game && room.settings.keepPlayersInSpots) {
                 room.game.playerSpots = room.game.playerSpots.map((spot: any, index: any) => ({ ...spot, player: playerSlotsPlayers[index] }))
               }
               updateDataForGameClients(room, "game/set")

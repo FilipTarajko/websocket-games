@@ -9,7 +9,6 @@ export const useSocketStore = defineStore('socketStore', () => {
   const chatMessages: Ref<any[]> = ref([])
   const gameState: Ref<any> = ref()
   const yourUsername: Ref<string> = ref('')
-  const keepPlayersInSpots = ref(true)
 
   const roomsStore = useRoomsStore()
 
@@ -54,15 +53,20 @@ export const useSocketStore = defineStore('socketStore', () => {
 
   function setGame(gameName: string) {
     sendControl('rooms/setGame', {
-      name: gameName.toLowerCase(),
-      keepPlayersInSpots: keepPlayersInSpots.value
+      name: gameName.toLowerCase()
     })
   }
 
   function playAgain() {
     sendControl('rooms/setGame', {
-      name: gameState.value.gameName.toLowerCase(),
-      keepPlayersInSpots: keepPlayersInSpots.value
+      name: gameState.value.gameName.toLowerCase()
+    })
+  }
+
+  function changeSetting(name: string, value: any) {
+    sendControl('rooms/changeSetting', {
+      name: name,
+      value: value
     })
   }
 
@@ -83,6 +87,12 @@ export const useSocketStore = defineStore('socketStore', () => {
             break
           case 'updateList':
             roomsStore.rooms = control[1]
+            break
+          case 'changeSetting':
+            if (control[1].name in roomsStore.currentRoom.settings) {
+              // @ts-ignore
+              roomsStore.currentRoom.settings[control[1].name] = control[1].value
+            }
             break
           case 'wrong_password':
             let elem = document.getElementById(`room${control[1].roomId}password`)
@@ -134,8 +144,8 @@ export const useSocketStore = defineStore('socketStore', () => {
     setupSocket,
     gameState,
     yourUsername,
-    keepPlayersInSpots,
     playAgain,
-    setGame
+    setGame,
+    changeSetting
   }
 })
