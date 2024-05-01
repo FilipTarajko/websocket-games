@@ -9,6 +9,7 @@ export const useSocketStore = defineStore('socketStore', () => {
   const chatMessages: Ref<any[]> = ref([])
   const gameState: Ref<any> = ref()
   const yourUsername: Ref<string> = ref('')
+  const keepPlayersInSpots = ref(true)
 
   const roomsStore = useRoomsStore()
 
@@ -52,6 +53,20 @@ export const useSocketStore = defineStore('socketStore', () => {
     if (socket) {
       socket.send(JSON.stringify([name, data]))
     }
+  }
+
+  function setGame(gameName: string) {
+    sendControl('rooms/setGame', {
+      name: gameName.toLowerCase(),
+      keepPlayersInSpots: keepPlayersInSpots.value
+    })
+  }
+
+  function playAgain() {
+    sendControl('rooms/setGame', {
+      name: gameState.value.gameName.toLowerCase(),
+      keepPlayersInSpots: keepPlayersInSpots.value
+    })
   }
 
   function interpretControl(control: any) {
@@ -124,6 +139,9 @@ export const useSocketStore = defineStore('socketStore', () => {
     chatMessages,
     setupSocket,
     gameState,
-    yourUsername
+    yourUsername,
+    keepPlayersInSpots,
+    playAgain,
+    setGame
   }
 })

@@ -13,8 +13,6 @@ const socketStore = useSocketStore()
 const isMouseDown = ref(false)
 const selectedColor = ref('#ffffff')
 
-const keepPlayersInSpots = ref(true)
-
 const messageToSay = ref('')
 function sayInRoom() {
   if (!messageToSay.value) return
@@ -147,15 +145,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="h-12 mt-2 w-full text-center">
-              <Button
-                v-if="socketStore.gameState.winner"
-                @click="
-                  socketStore.sendControl('rooms/setGame', {
-                    name: 'rockpaperscissors',
-                    keepPlayersInSpots
-                  })
-                "
-              >
+              <Button v-if="socketStore.gameState.winner" @click="socketStore.playAgain()">
                 play again
               </Button>
             </div>
@@ -182,15 +172,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="h-12 mt-2 w-full text-center">
-              <Button
-                v-if="socketStore.gameState.winner"
-                @click="
-                  socketStore.sendControl('rooms/setGame', {
-                    name: 'tictactoe',
-                    keepPlayersInSpots
-                  })
-                "
-              >
+              <Button v-if="socketStore.gameState.winner" @click="socketStore.playAgain()">
                 play again
               </Button>
             </div>
@@ -213,7 +195,6 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <!-- <div class="flex flex-row justify-center w-full h-full"> -->
             <div
               class="w-full h-5/6 select-none"
               style="
@@ -233,7 +214,6 @@ onMounted(() => {
                 ></div>
               </div>
             </div>
-            <!-- </div> -->
           </div>
         </div>
       </div>
@@ -275,33 +255,24 @@ onMounted(() => {
             <Switch
               :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
               id="keepPlayersInSpotsSwitch"
-              v-model:checked="keepPlayersInSpots"
+              v-model:checked="socketStore.keepPlayersInSpots"
             />
           </div>
           <Button
             :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="
-              socketStore.sendControl('rooms/setGame', { name: 'tictactoe', keepPlayersInSpots })
-            "
+            @click="socketStore.setGame('tictactoe')"
           >
             set game to TicTacToe
           </Button>
           <Button
             :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="
-              socketStore.sendControl('rooms/setGame', { name: 'drawing', keepPlayersInSpots })
-            "
+            @click="socketStore.setGame('drawing')"
           >
             set game to drawing
           </Button>
           <Button
             :disabled="roomsStore.currentRoom.ownerName != socketStore.yourUsername"
-            @click="
-              socketStore.sendControl('rooms/setGame', {
-                name: 'rockpaperscissors',
-                keepPlayersInSpots
-              })
-            "
+            @click="socketStore.setGame('rockpaperscissors')"
           >
             set game to rock paper scissors
           </Button>
