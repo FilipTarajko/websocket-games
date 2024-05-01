@@ -119,10 +119,10 @@ onMounted(() => {
           </div>
         </template>
       </div>
-      <div class="flex">
+      <form class="flex" @submit.prevent="sayInRoom">
         <Input v-model="messageToSay" type="text" id="messageText" />
-        <Button @click="sayInRoom">send</Button>
-      </div>
+        <Button type="submit" class="ml-2">send</Button>
+      </form>
     </div>
     <div class="h-[23rem] xxs:h-120 w-full lg:w-6/12 order-1 lg:order-2 mb-2 lg:mb-0 px-0 lg:px-2">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
