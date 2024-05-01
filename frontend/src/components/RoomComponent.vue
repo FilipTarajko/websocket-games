@@ -124,7 +124,7 @@ onMounted(() => {
         <Button type="submit" class="ml-2">send</Button>
       </form>
     </div>
-    <div class="h-[23rem] xxs:h-120 w-full lg:w-6/12 order-1 lg:order-2 mb-2 lg:mb-0 px-0 lg:px-2">
+    <div class="h-[26rem] xxs:h-120 w-full lg:w-6/12 order-1 lg:order-2 mb-2 lg:mb-0 px-0 lg:px-2">
       <div id="game-content" class="h-full w-full border-2 border-solid border-gray-500">
         <div style="height: 100%" v-if="socketStore.gameState">
           <div v-if="socketStore.gameState.gameName == 'RockPaperScissors'">
@@ -145,6 +145,19 @@ onMounted(() => {
                   {{ choice }}
                 </Button>
               </div>
+            </div>
+            <div class="h-12 mt-2 w-full text-center">
+              <Button
+                v-if="socketStore.gameState.winner"
+                @click="
+                  socketStore.sendControl('rooms/setGame', {
+                    name: 'rockpaperscissors',
+                    keepPlayersInSpots
+                  })
+                "
+              >
+                play again
+              </Button>
             </div>
           </div>
           <div v-if="socketStore.gameState.gameName == 'TicTacToe'">
@@ -167,6 +180,19 @@ onMounted(() => {
                   {{ spot || i + 1 }}
                 </Button>
               </div>
+            </div>
+            <div class="h-12 mt-2 w-full text-center">
+              <Button
+                v-if="socketStore.gameState.winner"
+                @click="
+                  socketStore.sendControl('rooms/setGame', {
+                    name: 'tictactoe',
+                    keepPlayersInSpots
+                  })
+                "
+              >
+                play again
+              </Button>
             </div>
           </div>
           <div style="height: 100%" v-else-if="socketStore.gameState.gameName == 'Drawing'">
