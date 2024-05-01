@@ -109,7 +109,7 @@ onMounted(() => {
           </Button>
         </div>
       </div>
-      <div v-if="socketStore.gameState.gameName == 'TicTacToe'">
+      <div v-else-if="socketStore.gameState.gameName == 'TicTacToe'">
         <div class="h-12 w-full text-center text-4xl">
           <span v-if="socketStore.gameState.winner">
             winner: {{ socketStore.gameState.winner }}
@@ -166,6 +166,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
+      <div v-else class="text-center mt-6 text-2xl">no game selected</div>
     </div>
   </div>
 </template>
