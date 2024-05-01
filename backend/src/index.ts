@@ -64,9 +64,12 @@ function onSocketError(err: any) {
 }
 
 function createRoom(webSocket: any, roomInitData: any) {
+  const new_room_name = roomInitData.name || (webSocket.user.username + "'s room");
+  const new_room_name_after_trim = new_room_name.trim().slice(0, 30);
+  console.log(new_room_name_after_trim)
   const newRoom = {
     id: nextRoomId,
-    name: roomInitData.name || (webSocket.user.username + "'s room"),
+    name: new_room_name_after_trim,
     users: [],
     owner: webSocket.user,
     password: roomInitData.password,

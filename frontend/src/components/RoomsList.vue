@@ -91,6 +91,7 @@ function roomBackgroundColor(roomId: number) {
           <TableCell></TableCell>
           <TableCell colspan="1"
             ><Input
+              maxlength="30"
               v-model="newRoomData.name"
               :placeholder="socketStore.yourUsername + '\'s room'"
               class="mr-2"
