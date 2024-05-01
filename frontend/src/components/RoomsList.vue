@@ -71,6 +71,7 @@ function roomBackgroundColor(roomId: number) {
               <Input
                 placeholder="password"
                 type="password"
+                :form="`join_room_${room.id}`"
                 :id="`room${room.id}password`"
                 class="w-40"
               ></Input>
@@ -78,14 +79,12 @@ function roomBackgroundColor(roomId: number) {
             <div v-else>public</div>
           </TableCell>
           <TableCell>
-            <Button
-              @click="joinRoom(room.id)"
-              :disabled="room.id == roomsStore.currentRoom.id"
-              size="sm"
-            >
-              <span v-if="room.id == roomsStore.currentRoom.id">you are here</span>
-              <span v-else>join</span>
-            </Button>
+            <form @submit.prevent="joinRoom(room.id)" :id="`join_room_${room.id}`">
+              <Button type="submit" :disabled="room.id == roomsStore.currentRoom.id" size="sm">
+                <span v-if="room.id == roomsStore.currentRoom.id">you are here</span>
+                <span v-else>join</span>
+              </Button>
+            </form>
           </TableCell>
         </TableRow>
         <TableRow>
@@ -97,6 +96,7 @@ function roomBackgroundColor(roomId: number) {
               class="mr-2"
               type="text"
               id="newRoomName"
+              form="create_room_form"
             />
           </TableCell>
           <TableCell></TableCell>
@@ -108,9 +108,14 @@ function roomBackgroundColor(roomId: number) {
               class="mr-2 w-40"
               type="password"
               id="newRoomPassword"
+              form="create_room_form"
             />
           </TableCell>
-          <TableCell><Button @click="createRoom">create room</Button></TableCell>
+          <TableCell>
+            <form @submit.prevent="createRoom" id="create_room_form">
+              <Button type="submit">create room</Button>
+            </form>
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>
