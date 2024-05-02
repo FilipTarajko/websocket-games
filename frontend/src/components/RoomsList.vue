@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useColorMode } from '@vueuse/core'
 
 const mode = useColorMode()
@@ -88,6 +89,17 @@ function roomBackgroundColor(roomId: number) {
             </form>
           </TableCell>
         </TableRow>
+        <TableRow v-if="roomsStore.rooms.length === 0" :style="roomBackgroundColor(-1)">
+          <TableCell><Skeleton class="w-3 h-6" /></TableCell>
+          <TableCell><Skeleton class="h-6" /></TableCell>
+          <TableCell><Skeleton class="w-3 h-6" /></TableCell>
+          <TableCell><Skeleton class="w-40 min-w-40 h-6" /></TableCell>
+          <TableCell><Skeleton class="w-12 h-6" /></TableCell>
+          <TableCell>
+            <Button disabled type="submit" size="sm"> join </Button>
+          </TableCell>
+        </TableRow>
+
         <TableRow>
           <TableCell></TableCell>
           <TableCell colspan="1"
