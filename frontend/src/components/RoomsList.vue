@@ -95,6 +95,7 @@ function roomBackgroundColor(roomId: number) {
               maxlength="30"
               v-model="newRoomData.name"
               :placeholder="socketStore.yourUsername + '\'s room'"
+              autocomplete="new-room-name"
               class="mr-2"
               type="text"
               id="newRoomName"
