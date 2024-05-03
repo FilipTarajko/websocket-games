@@ -1,10 +1,4 @@
-import { User } from "@prisma/client";
-
-type PlayerSpot = {
-    name: string,
-    player: User | null,
-    strategic_data: any
-}
+import { UserIdAndUsername, PlayerSpot } from "../types";
 
 export class RockPaperScissorsGame {
     playerSpots: PlayerSpot[];
@@ -20,7 +14,7 @@ export class RockPaperScissorsGame {
         this.gameName = "RockPaperScissors";
     }
 
-    takeSpot(index: number, user: User) {
+    takeSpot(index: number, user: UserIdAndUsername) {
         for (let i = 0; i < this.playerSpots.length; i++) {
             if (this.playerSpots[i].player?.id == user?.id) {
                 this.playerSpots[i].player = null;
@@ -31,7 +25,7 @@ export class RockPaperScissorsGame {
         }
     }
 
-    leaveSpot(user: User) {
+    leaveSpot(user: UserIdAndUsername) {
         for (let i = 0; i < this.playerSpots.length; i++) {
             if (this.playerSpots[i].player?.id == user?.id) {
                 this.playerSpots[i].player = null;
@@ -59,7 +53,7 @@ export class RockPaperScissorsGame {
         }
     }
 
-    place(position: string, user: User) {
+    place(position: string, user: UserIdAndUsername) {
         let usersSpot = this.playerSpots.find((spot) => spot.player?.id == user.id);
         if (!usersSpot) {
             return false;

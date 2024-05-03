@@ -32,8 +32,7 @@ function createRoom() {
 function joinRoom(id: number) {
   socketStore.sendControl('rooms/join', {
     newRoomId: id,
-    // @ts-ignore
-    password: document.getElementById(`room${id}password`)?.value
+    password: (document.getElementById(`room${id}password`) as HTMLInputElement | undefined)?.value
   })
 }
 

@@ -1,9 +1,4 @@
-import { User } from "@prisma/client";
-
-type PlayerSpot = {
-    name: string,
-    player: User | null
-}
+import { UserIdAndUsername, PlayerSpot } from "../types";
 
 export class TicTacToeGame {
     board: string[];
@@ -23,7 +18,7 @@ export class TicTacToeGame {
         this.gameName = "TicTacToe";
     }
 
-    takeSpot(index: number, user: User) {
+    takeSpot(index: number, user: UserIdAndUsername) {
         for (let i = 0; i < this.playerSpots.length; i++) {
             if (this.playerSpots[i].player?.id == user?.id) {
                 this.playerSpots[i].player = null;
@@ -34,7 +29,7 @@ export class TicTacToeGame {
         }
     }
 
-    leaveSpot(user: User) {
+    leaveSpot(user: UserIdAndUsername) {
         for (let i = 0; i < this.playerSpots.length; i++) {
             if (this.playerSpots[i].player?.id == user?.id) {
                 this.playerSpots[i].player = null;
@@ -63,7 +58,7 @@ export class TicTacToeGame {
         }
     }
 
-    place(position: number, user: User) {
+    place(position: number, user: UserIdAndUsername) {
         if (this.playerSpots[(this.turn + 1) % 2].player?.id != user.id) {
             return false;
         }

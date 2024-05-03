@@ -45,7 +45,7 @@ export const useSocketStore = defineStore('socketStore', () => {
     return false
   }
 
-  function sendControl(name: any, data: any = {}) {
+  function sendControl(name: string, data: any = {}) {
     if (socket) {
       socket.send(JSON.stringify([name, data]))
     }
@@ -70,7 +70,7 @@ export const useSocketStore = defineStore('socketStore', () => {
     })
   }
 
-  function interpretControl(control: any) {
+  function interpretControl(control: [string, any]) {
     const controlParts = control[0].split('/')
     switch (controlParts[0]) {
       case 'rooms':
@@ -90,8 +90,7 @@ export const useSocketStore = defineStore('socketStore', () => {
             break
           case 'changeSetting':
             if (control[1].name in roomsStore.currentRoom.settings) {
-              // @ts-ignore
-              roomsStore.currentRoom.settings[control[1].name] = control[1].value
+              ;(roomsStore.currentRoom.settings as any)[control[1].name] = control[1].value
             }
             break
           case 'wrong_password':

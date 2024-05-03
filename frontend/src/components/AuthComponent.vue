@@ -2,7 +2,6 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { computed, ref } from 'vue'
-// @ts-ignore
 import { useJwt } from '@vueuse/integrations/useJwt'
 import { useSocketStore } from '@/stores/socketStore'
 import { useToast } from '@/components/ui/toast/use-toast'
@@ -102,8 +101,8 @@ async function cookies() {
   })
   let data = await response.json()
   if (data.token) {
-    // @ts-ignore
-    socketStore.yourUsername = useJwt(data.token).payload?.value.username || ''
+    socketStore.yourUsername =
+      useJwt<{ username?: string }>(data.token).payload?.value?.username || ''
   } else {
     socketStore.yourUsername = ''
   }

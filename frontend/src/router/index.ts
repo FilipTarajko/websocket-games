@@ -26,7 +26,7 @@ const router = createRouter({
 router.afterEach(async (to, from) => {
   const socketStore = useSocketStore()
   try {
-    let requestInit: any = {
+    let requestInit: RequestInit = {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -40,8 +40,7 @@ router.afterEach(async (to, from) => {
     const response = fetch(import.meta.env.VITE_BACKEND_HTTP_ADDRESS + '/cookies/', requestInit)
     let cookies = await (await response).json()
     if ('token' in cookies) {
-      // @ts-ignore
-      socketStore.yourUsername = useJwt(cookies.token).payload?.value.username || ''
+      socketStore.yourUsername = useJwt<{username?:string}>(cookies.token).payload?.value?.username ?? ''
       socketStore.setupSocket()
       if (to.name === 'wait') {
         router.push('/')

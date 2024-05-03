@@ -11,6 +11,9 @@ import { TicTacToeGame } from "./games/tictactoe";
 import { DrawingGame } from "./games/drawing";
 import { RockPaperScissorsGame } from "./games/rockPaperScissors";
 
+import { PlayerSpot, UserIdAndUsername } from "./types";
+type WebSocketWithData = WebSocket & { user: UserIdAndUsername, roomId: number }
+
 const port = process.env.PORT;
 
 const lobbyRoomId = 1
@@ -28,8 +31,8 @@ app.use(cors({
 type Room = {
   id: number;
   name: string;
-  users: any[];
-  owner: any;
+  users: UserIdAndUsername[];
+  owner: UserIdAndUsername | null;
   password: string;
   game: null | TicTacToeGame | DrawingGame | RockPaperScissorsGame;
   settings: {
@@ -65,11 +68,11 @@ const server = http.createServer(app);
 
 const webSocketServer = new WebSocket.Server({ noServer: true });
 
-function onSocketError(err: any) {
+function onSocketError(err: Error) {
   console.error(err);
 }
 
-function createRoom(webSocket: any, roomInitData: any) {
+function createRoom(webSocket: WebSocketWithData, roomInitData: { name: string, password: string }) {
   const new_room_name = roomInitData.name || (webSocket.user.username + "'s room");
   const new_room_name_after_trim = new_room_name.trim().slice(0, 30);
   console.log(new_room_name_after_trim)
@@ -103,7 +106,7 @@ function tryParseControl(string: string) {
   return false
 }
 
-function leaveRoom(webSocket: any) {
+function leaveRoom(webSocket: WebSocketWithData) {
   const oldRoom = rooms.find((room) => room.users.includes(webSocket.user));
   if (oldRoom) {
     oldRoom.users = oldRoom.users.filter((user) => user != webSocket.user);
@@ -134,15 +137,15 @@ function leaveRoom(webSocket: any) {
   }
 }
 
-function sendControl(webSocket: WebSocket, name: any, data: any = {}) {
+function sendControl(webSocket: WebSocket, name: string, data: any = {}) {
   webSocket.send(JSON.stringify([name, data]));
 }
 
-function generateRoomPublicData(room: any) {
+function generateRoomPublicData(room: Room) {
   return { id: room.id, name: room.name, ownerName: room.owner?.username, users: room.users, settings: room.settings }
 }
 
-function joinRoom(webSocket: any, joinData: any) {
+function joinRoom(webSocket: WebSocketWithData, joinData: { newRoomId: number, password: string}) {
   const newRoom = rooms.find((room) => room.id === joinData.newRoomId);
   if (!newRoom) {
     sendControl(webSocket, 'rooms/not_found')
@@ -163,10 +166,9 @@ function joinRoom(webSocket: any, joinData: any) {
   updateRoomList()
 }
 
-function sendToAllPlayersInRoom(room: any, control: any) {
+function sendToAllPlayersInRoom(room: Room, control: [string, any]) {
   webSocketServer.clients.forEach(function each(client) {
-    // @ts-ignore
-    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
+    if (client.readyState === WebSocket.OPEN && (client as WebSocketWithData).roomId === room.id) {
       client.send(JSON.stringify(control))
     }
   })
@@ -181,13 +183,11 @@ function updateRoomList() {
 
 }
 
-function sendPreparedGameState(webSocket: any, room: any, controlName: string) {
+function sendPreparedGameState(webSocket: WebSocketWithData, room: any, controlName: string) {
   let preparedGameData = structuredClone(room.game)
   if (preparedGameData && "playerSpots" in preparedGameData && "strategic_data" in preparedGameData.playerSpots[0]) {
     for (let i = 0; i < preparedGameData.playerSpots.length; i++) {
-      // @ts-ignore
       if (preparedGameData?.playerSpots[i].player?.id == webSocket.user.id) {
-        // @ts-ignore
         preparedGameData.your_strategic_data = preparedGameData.playerSpots[i].strategic_data;
       }
       delete preparedGameData.playerSpots[i].strategic_data;
@@ -198,24 +198,21 @@ function sendPreparedGameState(webSocket: any, room: any, controlName: string) {
 
 function updateSettingForGameClients(room: Room, setting: string) {
   webSocketServer.clients.forEach(function each(client) {
-    // @ts-ignore
-    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
-      // @ts-ignore
-      client.send(JSON.stringify(["rooms/changeSetting", { name: setting, value: room.settings[setting] }]))
+    if (client.readyState === WebSocket.OPEN && (client as WebSocketWithData).roomId === room.id) {
+      client.send(JSON.stringify(["rooms/changeSetting", { name: setting, value: (room.settings as any)[setting] }]))
     }
   })
 }
 
 function updateDataForGameClients(room: Room, controlName: string) {
   webSocketServer.clients.forEach(function each(client) {
-    // @ts-ignore
-    if (client.readyState === WebSocket.OPEN && client.roomId === room.id) {
-      sendPreparedGameState(client, room, controlName);
+    if (client.readyState === WebSocket.OPEN && (client as WebSocketWithData).roomId === room.id) {
+      sendPreparedGameState(client as WebSocketWithData, room, controlName);
     }
   })
 }
 
-function interpretControl(control: any, webSocket: any) {
+function interpretControl(control: [string, any], webSocket: WebSocketWithData) {
   let room = rooms.find((room) => room.users.includes(webSocket.user))
   const controlParts = control[0].split('/');
   switch (controlParts[0]) {
@@ -234,8 +231,7 @@ function interpretControl(control: any, webSocket: any) {
         case 'changeSetting':
           if (room && (room.owner === webSocket.user)) {
             if (control[1].name in room.settings) {
-              // @ts-ignore
-              room.settings[control[1].name] = !!control[1].value;
+              (room.settings as any)[control[1].name] = !!control[1].value;
               updateSettingForGameClients(room, control[1].name)
             }
           }
@@ -244,8 +240,7 @@ function interpretControl(control: any, webSocket: any) {
           const roomId = rooms.find((room) => room.users.includes(webSocket.user))?.id;
           console.log(roomId)
           webSocketServer.clients.forEach(function each(client) {
-            // @ts-ignore
-            if (client.readyState === WebSocket.OPEN && client.roomId === roomId) {
+            if (client.readyState === WebSocket.OPEN && (client as WebSocketWithData).roomId === roomId) {
               client.send(JSON.stringify(['rooms/said', { author: webSocket.user, message: control[1] }]))
             }
           })
@@ -269,7 +264,7 @@ function interpretControl(control: any, webSocket: any) {
             }
             if (gameFound) {
               if (room.game && "playerSpots" in room.game && room.settings.keepPlayersInSpots) {
-                room.game.playerSpots = room.game.playerSpots.map((spot: any, index: any) => ({ ...spot, player: playerSlotsPlayers[index] }))
+                room.game.playerSpots = room.game.playerSpots.map((spot: PlayerSpot, index: number) => ({ ...spot, player: playerSlotsPlayers[index] }))
               }
               updateDataForGameClients(room, "game/set")
               updateRoomList()
@@ -297,7 +292,6 @@ function interpretControl(control: any, webSocket: any) {
           break;
         case 'place':
           if (room && room.game) {
-            // @ts-ignore
             if (room.game.place(control[1], webSocket.user)) {
               if ("winner" in room.game && room.game.winner) {
                 updateDataForGameClients(room, "game/ended")
@@ -316,12 +310,10 @@ function interpretControl(control: any, webSocket: any) {
     default:
       sendControl(webSocket, 'error', { message: `Unknown ??? control: ${control[0]}, ${control[1]}` })
       break;
-
   }
 }
 
-webSocketServer.on("connection", (webSocket: any, req: any) => {
-
+webSocketServer.on("connection", (webSocket: WebSocketWithData, req) => {
   const cookies: { [key: string]: string } = {};
   const cookieHeader = req.headers.cookie;
 
@@ -334,7 +326,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
     cookies[key] = value;
   });
 
-  jwt.verify(cookies?.token, process.env.JWT_SECRET!, function (err: any, decoded: any) {
+  jwt.verify(cookies?.token, process.env.JWT_SECRET!, function (err, decoded: any) {
     if (err || !decoded) {
       webSocket.terminate();
       return;
@@ -355,7 +347,7 @@ webSocketServer.on("connection", (webSocket: any, req: any) => {
     updateRoomList()
   });
 
-  webSocket.on("message", (messageToParse: any) => {
+  webSocket.on("message", (messageToParse) => {
     const message = messageToParse.toString();
     const control = tryParseControl(message)
     if (control) {
